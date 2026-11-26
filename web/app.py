@@ -10,7 +10,8 @@ from urllib.parse import quote
 try:
     from dotenv import load_dotenv
 
-    load_dotenv()
+    if os.getenv("LLM_PROVIDER") is None:
+        load_dotenv()
 except ImportError:  # pragma: no cover
     pass
 
@@ -32,6 +33,32 @@ log = logging.getLogger("web")
 
 STATIC = Path(__file__).parent / "static"
 app = FastAPI(title="bcc spec — проверка ТЗ", version=__version__, docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+
+# Необязательная защита паролем для публичного стенда: APP_BASIC_AUTH="user:password".
+_BASIC_AUTH = os.getenv("APP_BASIC_AUTH", "")
+
+
+@app.middleware("http")
+async def _basic_auth(request, call_next):
+    if not _BASIC_AUTH or request.url.path == "/healthz":
+        return await call_next(request)
+    import base64
+    import secrets
+    header = request.headers.get("authorization", "")
+    if header.lower().startswith("basic "):
+        try:
+            given = base64.b64decode(header[6:]).decode("utf-8")
+        except Exception:  # noqa: BLE001
+            given = ""
+        if secrets.compare_digest(given.encode(), _BASIC_AUTH.encode()):
+            return await call_next(request)
+    return Response("Требуется вход", status_code=401, headers={"WWW-Authenticate": 'Basic realm="bcc spec"'})
+
+
+@app.get("/healthz", include_in_schema=False)
+def healthz():
+    return {"ok": True}
 
 
 def err(status: int, code: str, message: str, hint: str = "") -> JSONResponse:

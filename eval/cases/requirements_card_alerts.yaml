@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {"id":"E01","description":"Правило месяца противоречит примеру обработки на границе месяца","category":"consistent","severity":"critical","anchor_quotes":["Месяц определяется по дате совершения покупки в Алматы.","Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸"]},
+    {"id":"E02","description":"Лимит одного уведомления конфликтует с повторным достижением","category":"consistent","severity":"critical","anchor_quotes":["На карту приходится максимум один такой push за календарный месяц.","следующее достижение вызывает push независимо от истории предыдущей настройки"]},
+    {"id":"E03","description":"Качественная цель времени конфликтует с числовым NFR","categories":["consistent","verifiable"],"severity":"major","anchor_quotes":["в момент покупки","в течение минуты после получения события"]},
+    {"id":"E04","description":"Не определён способ измерения NFR","category":"verifiable","severity":"major","anchor_quotes":["Сервис передаёт push на отправку в течение минуты после получения события."]},
+    {"id":"E05","description":"Изменяющая состояние операция использует GET и параметры URL","categories":["correct","appropriate"],"severity":"critical","anchor_quotes":["REST type | GET","Request URL | Dev: `/alerts/saveLimit`"]},
+    {"id":"E06","description":"Описание чтения и сохранения не покрыто операциями","category":"complete","severity":"major","anchor_quotes":["Сохранение порога. Функциональные требования: чтение порога","Приложение читает и сохраняет настройки"]},
+    {"id":"E07","description":"Ошибка в успешном ответе конфликтует с кодом неверных параметров","category":"consistent","severity":"critical","anchor_quotes":["Если результат 400, 401 и далее — неуспешный.","{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}"]},
+    {"id":"E08","description":"403 возвращает 404, 404 не объявлен, а 201 объявлен без отдельного описания","category":"consistent","severity":"major","anchor_quotes":["Если результат 200 или 201 — успешный.","Для чужой карты возвращается 404","403. Ответ в случае, если на указанный ресурс доступ запрещен."]},
+    {"id":"E09","description":"Тип суммы запроса и ответа различается","category":"consistent","severity":"major","anchor_quotes":["`amount` | integer","`amount` | string"]},
+    {"id":"E10","description":"Единицы хранения суммы и порога различаются без правил преобразования","category":"complete","severity":"major","anchor_quotes":["сумму покупки в тиынах","порог в тенге"]},
+    {"id":"E11","description":"Не определено снижение порога ниже накопленной суммы","category":"complete","severity":"major","anchor_quotes":["При изменении порога накопленная сумма сохраняется."]},
+    {"id":"E12","description":"Не определены сложные сценарии возврата","category":"complete","severity":"major","anchor_quotes":["Возврат уменьшает расходы месяца исходной покупки."]},
+    {"id":"E13","description":"Не определены ключевые термины и типы операций","category":"unambiguous","severity":"major","anchor_quotes":["активной карты","проведённые покупки"]},
+    {"id":"E14","description":"Не определён ключ идемпотентности события","category":"complete","severity":"major","anchor_quotes":["Повторная доставка одного события процессинга сохраняет исходный итог."]},
+    {"id":"E15","description":"Не заполнены тестирование, версия, согласование, откат и безопасность","category":"complete","severity":"critical","anchor_quotes":["заполняются тестировщиками","Документ (версия/дата) в источнике не заполнен"]},
+    {"id":"E16","description":"Не хватает критериев приёмки для функциональных ветвей","category":"complete","severity":"major","anchor_quotes":["Критерии приемки","Изменение порога сохраняет накопленные расходы."]}
+  ]
+}

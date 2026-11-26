@@ -115,7 +115,7 @@ function clearTimers() { state.timers.forEach(clearInterval); state.timers.clear
 
 async function loadMeta() {
   try {
-    state.meta = await api('/api/meta');
+    state.meta = await api('api/meta');
     const m = state.meta;
     const badge = document.getElementById('mode-badge');
     if (m.mode !== 'agent') {
@@ -133,7 +133,7 @@ async function loadMeta() {
   }
 }
 async function loadProjects() {
-  try { state.projects = await api('/api/gitlab/projects'); } catch { state.projects = []; }
+  try { state.projects = await api('api/gitlab/projects'); } catch { state.projects = []; }
   return state.projects;
 }
 
@@ -198,7 +198,7 @@ async function acceptFile(file) {
   viewIntake();
   const fd = new FormData(); fd.append('file', file);
   try {
-    const up = await api('/api/documents', { method: 'POST', body: fd, signal: it.abort.signal });
+    const up = await api('api/documents', { method: 'POST', body: fd, signal: it.abort.signal });
     it.upload = up; it.phase = 'parsed';
     it.form.title = up.preview.title || file.name.replace(/\.[^.]+$/, '');
   } catch (e) {
@@ -320,7 +320,7 @@ function settingsBlock() {
     f.criteria = e.target.value === 'all' ? all : e.target.value === 'iso' ? ['iso29148'] : f.criteria;
     viewIntake();
   } },
-  h('option', { value: 'all', selected: (f.criteria || []).length === (state.meta?.groups || []).length }, '29148, 830, чек-листу и финтех-правилам'),
+  h('option', { value: 'all', selected: (f.criteria || []).length === (state.meta?.groups || []).length }, '29148, 830 и контексту проекта'),
   h('option', { value: 'iso', selected: (f.criteria || []).length === 1 && f.criteria[0] === 'iso29148' }, 'только ISO/IEC/IEEE 29148'),
   ((f.criteria || []).length !== (state.meta?.groups || []).length && !((f.criteria || []).length === 1 && f.criteria[0] === 'iso29148'))
     ? h('option', { value: 'custom', selected: true }, `выбранным критериям (${(f.criteria || []).length})`) : null);
@@ -365,7 +365,7 @@ function settingsBlock() {
     if (f.project && !f.scopes.length) { err.textContent = 'Выберите, что сверять в коде, или уберите проект.'; return; }
     start.disabled = true; err.textContent = '';
     try {
-      const r = await api('/api/runs', { method: 'POST', json: {
+      const r = await api('api/runs', { method: 'POST', json: {
         upload_id: it.upload.upload_id, title: f.title, work_type: f.work_type, criteria: f.criteria,
         gitlab_project_id: f.project || null, ref: f.project ? (f.ref || null) : null, scopes: f.project ? f.scopes : [] } });
       state.intake = { ...state.intake, phase: 'empty', upload: null, file: null, error: null };
@@ -391,7 +391,7 @@ function branchSelect(f) {
   if (state.branches[f.project]) fill(state.branches[f.project]);
   else {
     fill([proj.default_branch]);
-    api(`/api/gitlab/projects/${f.project}/branches`).then((names) => { state.branches[f.project] = names; fill(names); }).catch(() => {});
+    api(`api/gitlab/projects/${f.project}/branches`).then((names) => { state.branches[f.project] = names; fill(names); }).catch(() => {});
   }
   return sel;
 }
@@ -399,14 +399,14 @@ function branchSelect(f) {
 // ================================================================== 2. Ревью и результат
 async function viewRun(id) {
   let run;
-  try { run = await api(`/api/runs/${id}`); }
+  try { run = await api(`api/runs/${id}`); }
   catch (e) { return render(notFound('Проверка не найдена', 'Запуски хранятся в памяти сервера и пропадают после перезапуска.')); }
   if (run.status === 'done') return viewResult(run);
   drawReview(run);
   if (run.status === 'running' || run.status === 'queued') {
     every(800, async () => {
       try {
-        const r = await api(`/api/runs/${id}`);
+        const r = await api(`api/runs/${id}`);
         if (r.status === 'done') { clearTimers(); return viewResult(r); }
         drawReview(r);
         if (r.status !== 'running' && r.status !== 'queued') clearTimers();
@@ -461,7 +461,7 @@ function drawReview(run) {
         h('button', { type: 'button', class: 'btn', onclick: () => retry(run.id) }, 'Запустить заново'),
         h('a', { class: 'btn-ghost', href: '#/' }, 'Новое ТЗ'))
       : h('button', { type: 'button', class: 'btn-ghost', style: { alignSelf: 'flex-start' }, onclick: async (e) => {
-        e.target.disabled = true; try { await api(`/api/runs/${run.id}/cancel`, { method: 'POST' }); } catch (x) { toast(x.message); }
+        e.target.disabled = true; try { await api(`api/runs/${run.id}/cancel`, { method: 'POST' }); } catch (x) { toast(x.message); }
       } }, 'Остановить ревью'));
 
   const alerts = [];
@@ -495,14 +495,14 @@ function drawReview(run) {
 }
 
 async function retry(id) {
-  try { const r = await api(`/api/runs/${id}/retry`, { method: 'POST' }); location.hash = `#/runs/${r.run_id}`; }
+  try { const r = await api(`api/runs/${id}/retry`, { method: 'POST' }); location.hash = `#/runs/${r.run_id}`; }
   catch (e) { toast(e.message); }
 }
 
 // ---------- результат
 async function viewResult(run) {
   let res;
-  try { res = await api(`/api/runs/${run.id}/result`); }
+  try { res = await api(`api/runs/${run.id}/result`); }
   catch (e) { return render(notFound('Не удалось загрузить результат', e.message)); }
   setTitle(res.passport.document_title);
   const ui = { tab: 'doc', sev: 'all', crit: 'all', sel: null };
@@ -707,8 +707,8 @@ async function viewResult(run) {
           fixFirst.map((f) => h('li', null, h('button', { type: 'button', class: 'btn-link', style: { minHeight: 0, fontSize: '16px', textAlign: 'left' }, onclick: () => { ui.tab = 'doc'; ui.sev = 'all'; ui.crit = 'all'; ui.sel = f.id; draw(f.id); } }, `${f.id} — ${f.title}`),
             f.fix ? h('div', { class: 'small muted' }, f.fix) : null)))) : null,
       (res.warnings || []).length ? h('div', { class: 'note' }, h('b', null, 'Предупреждения прогона: '), res.warnings.map((w) => w.message).join('; ')) : null,
-      h('div', { class: 'row' }, h('a', { class: 'btn-ghost', href: `/api/runs/${run.id}/report.md`, target: '_blank', rel: 'noopener' }, 'Открыть report.md'),
-        h('a', { class: 'btn-ghost', href: `/api/runs/${run.id}/result`, target: '_blank', rel: 'noopener' }, 'JSON результата')));
+      h('div', { class: 'row' }, h('a', { class: 'btn-ghost', href: `api/runs/${run.id}/report.md`, target: '_blank', rel: 'noopener' }, 'Открыть report.md'),
+        h('a', { class: 'btn-ghost', href: `api/runs/${run.id}/result`, target: '_blank', rel: 'noopener' }, 'JSON результата')));
   }
 
   draw();
@@ -733,7 +733,7 @@ function resultHead(res, run) {
     h('div', { class: 'r' },
       h('div', { class: 'stamp', role: 'img', 'aria-label': `Вердикт: ${stamp[0]}`, style: { color: stamp[1] } }, h('b', null, stamp[0]), h('span', null, stamp[2])),
       h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
-        h('a', { class: 'btn', href: `/api/runs/${run.id}/report.md?download=1` }, 'Скачать отчёт .md'),
+        h('a', { class: 'btn', href: `api/runs/${run.id}/report.md?download=1` }, 'Скачать отчёт .md'),
         h('a', { class: 'btn-ghost', href: '#/', style: { justifyContent: 'center', minHeight: '48px' } }, 'Новое ТЗ'))));
 }
 
@@ -855,7 +855,7 @@ async function viewHistory() {
   render(root);
   async function draw() {
     let items;
-    try { items = await api('/api/runs'); } catch (e) { fill(root, notFound('Не удалось загрузить историю', e.message)); return; }
+    try { items = await api('api/runs'); } catch (e) { fill(root, notFound('Не удалось загрузить историю', e.message)); return; }
     const notReady = items.filter((r) => r.verdict === 'not_ready').length;
     const running = items.filter((r) => r.status === 'running' || r.status === 'queued').length;
     fill(root, 
@@ -911,19 +911,19 @@ function historyRow(r) {
     h('td', { class: 'small', style: { whiteSpace: 'nowrap' } }, fmtDate(r.created_at)),
     state_,
     h('td', { style: { textAlign: 'right', whiteSpace: 'nowrap' } },
-      running ? h('button', { type: 'button', class: 'btn-ghost', onclick: async () => { await api(`/api/runs/${r.id}/cancel`, { method: 'POST' }).catch((e) => toast(e.message)); } }, 'Остановить')
+      running ? h('button', { type: 'button', class: 'btn-ghost', onclick: async () => { await api(`api/runs/${r.id}/cancel`, { method: 'POST' }).catch((e) => toast(e.message)); } }, 'Остановить')
         : h('div', { class: 'row', style: { justifyContent: 'flex-end' } },
           h('a', { class: 'btn-ghost', href: go }, 'Открыть'),
           h('button', { type: 'button', class: 'btn-ghost btn-danger', 'aria-label': `Удалить проверку ${r.title}`, onclick: async () => {
             if (!confirm(`Удалить проверку «${r.title}» из истории?`)) return;
-            await api(`/api/runs/${r.id}`, { method: 'DELETE' }).catch((e) => toast(e.message)); viewHistory();
+            await api(`api/runs/${r.id}`, { method: 'DELETE' }).catch((e) => toast(e.message)); viewHistory();
           } }, 'Удалить'))));
 }
 
 // ================================================================== 4. Критерии
 async function viewCriteria() {
   setTitle('Критерии');
-  const m = state.meta || await api('/api/meta');
+  const m = state.meta || await api('api/meta');
   render(h('div', { class: 'wrap stack' },
     h('div', { class: 'res-head' }, h('div', { class: 'l' }, h('span', { class: 'greenbar' }), h('h1', { class: 'h1' }, 'Критерии проверки'),
       h('p', null, 'По каждому критерию агент задаёт проверочный вопрос. Нарушение засчитывается только с дословной цитатой из документа — код сверяет её с текстом, иначе находка отбрасывается.'))),
@@ -946,7 +946,7 @@ async function viewGitlab() {
   render(root);
   let conns = [];
   async function load() {
-    try { [conns] = await Promise.all([api('/api/gitlab/connections'), loadProjects()]); } catch (e) { ui.err = e.message; }
+    try { [conns] = await Promise.all([api('api/gitlab/connections'), loadProjects()]); } catch (e) { ui.err = e.message; }
   }
   async function draw() {
     const scopes = state.meta?.scopes || [];
@@ -956,7 +956,7 @@ async function viewGitlab() {
     const sub = h('button', { type: 'submit', class: 'btn' }, 'Подключить');
     const form = h('form', { class: 'paper card', onsubmit: async (e) => {
       e.preventDefault(); sub.disabled = true; ferr.textContent = '';
-      try { await api('/api/gitlab/connections', { method: 'POST', json: { url: urlIn.value, token: tokIn.value } }); tokIn.value = ''; ui.err = ''; toast('GitLab подключён'); await load(); draw(); }
+      try { await api('api/gitlab/connections', { method: 'POST', json: { url: urlIn.value, token: tokIn.value } }); tokIn.value = ''; ui.err = ''; toast('GitLab подключён'); await load(); draw(); }
       catch (x) { ferr.textContent = x.message; sub.disabled = false; }
     } },
     h('h2', { class: 'h3' }, 'Подключение'),
@@ -974,13 +974,13 @@ async function viewGitlab() {
         return h('div', { class: 'it' }, h('span', null, h('span', { class: 'mono small' }, p.path), h('div', { class: 'small muted' }, p.default_branch || 'пустой репозиторий')),
           added ? h('span', { class: 'pill ok' }, 'подключён') : h('button', { type: 'button', class: 'btn-ghost', onclick: async (e) => {
             e.target.disabled = true;
-            try { await api('/api/gitlab/projects', { method: 'POST', json: { connection_id: c.id, gitlab_id: p.gitlab_id } }); await load(); draw(); }
+            try { await api('api/gitlab/projects', { method: 'POST', json: { connection_id: c.id, gitlab_id: p.gitlab_id } }); await load(); draw(); }
             catch (x) { toast(x.message); e.target.disabled = false; }
           } }, 'Подключить'));
       }) : [h('div', { class: 'small muted', style: { padding: '12px 0' } }, 'Проектов не найдено.')]));
       const search = async () => {
         ui.search[c.id] = sIn.value; fill(list, h('div', { class: 'small muted', style: { padding: '12px 0' } }, h('span', { class: 'spin' }), ' Загружаем проекты…'));
-        try { ui.results[c.id] = await api(`/api/gitlab/connections/${c.id}/projects?search=${encodeURIComponent(sIn.value)}`); fill(ui.results[c.id]); }
+        try { ui.results[c.id] = await api(`api/gitlab/connections/${c.id}/projects?search=${encodeURIComponent(sIn.value)}`); fill(ui.results[c.id]); }
         catch (x) { fill(list, h('div', { class: 'formerr', style: { padding: '12px 0' } }, x.message)); }
       };
       sIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
@@ -989,7 +989,7 @@ async function viewGitlab() {
         h('div', { class: 'proj-head' }, h('span', null, h('b', null, c.url), h('div', { class: 'small muted' }, `пользователь ${c.username}`)),
           h('button', { type: 'button', class: 'btn-ghost btn-danger', onclick: async () => {
             if (!confirm(`Отключить ${c.url}? Подключённые через него проекты тоже будут убраны.`)) return;
-            await api(`/api/gitlab/connections/${c.id}`, { method: 'DELETE' }); await load(); draw();
+            await api(`api/gitlab/connections/${c.id}`, { method: 'DELETE' }); await load(); draw();
           } }, 'Отключить')),
         c.scopes ? h('div', { class: 'chips' }, c.scopes.map((s) => h('span', { class: 'chip' }, s))) : h('span', { class: 'small muted' }, 'Права токена GitLab не сообщил (токен группы или старая версия).'),
         h('div', { class: 'row' }, h('label', { class: 'field', style: { flex: 1 } }, h('span', { class: 'sr' }, 'Поиск'), sIn), h('button', { type: 'button', class: 'btn-ghost', onclick: search }, 'Найти')),
@@ -1007,8 +1007,8 @@ async function viewGitlab() {
           h('span', { class: 'small' }, s.label), h('b', null, String(p.counts[s.id] || 0)),
           h('div', { class: 'paths' }, (p.samples[s.id] || []).map((x) => h('div', null, x)), (p.counts[s.id] || 0) > (p.samples[s.id] || []).length ? h('div', null, '…') : null))))) : null,
       h('div', { class: 'row' },
-        h('button', { type: 'button', class: 'btn-ghost', disabled: p.status === 'indexing', onclick: async () => { await api(`/api/gitlab/projects/${p.id}/sync`, { method: 'POST' }).catch((x) => toast(x.message)); await load(); draw(); } }, 'Синхронизировать'),
-        h('button', { type: 'button', class: 'btn-ghost btn-danger', onclick: async () => { await api(`/api/gitlab/projects/${p.id}`, { method: 'DELETE' }); await load(); draw(); } }, 'Убрать'))));
+        h('button', { type: 'button', class: 'btn-ghost', disabled: p.status === 'indexing', onclick: async () => { await api(`api/gitlab/projects/${p.id}/sync`, { method: 'POST' }).catch((x) => toast(x.message)); await load(); draw(); } }, 'Синхронизировать'),
+        h('button', { type: 'button', class: 'btn-ghost btn-danger', onclick: async () => { await api(`api/gitlab/projects/${p.id}`, { method: 'DELETE' }); await load(); draw(); } }, 'Убрать'))));
 
     fill(root, 
       h('div', { class: 'res-head' }, h('div', { class: 'l' }, h('span', { class: 'greenbar' }), h('h1', { class: 'h1' }, 'Проекты GitLab'),

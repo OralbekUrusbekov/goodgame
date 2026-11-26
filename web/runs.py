@@ -42,7 +42,7 @@ def load_pipeline() -> tuple[Callable[..., dict], str]:
         from .mock_pipeline import run_pipeline
         return run_pipeline, "demo"
     try:
-        from validator.pipeline import run_pipeline  # type: ignore
+        from validator.contract import run_pipeline  # type: ignore  # адаптер агента под контракт веба
         return run_pipeline, "agent"
     except ImportError:
         from .mock_pipeline import run_pipeline

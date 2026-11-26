@@ -7,6 +7,7 @@
 
 ```powershell
 pip install -r requirements.txt
+cp .env.example .env   # вписать GEMINI_API_KEY
 python -m web
 ```
 
@@ -20,12 +21,19 @@ python -m web
 | `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_PROJECTS` | подключить GitLab и проекты (`group/a,group/b`) при старте |
 | `WEB_HOST`, `WEB_PORT` | адрес сервера (по умолчанию 127.0.0.1:8000)                     |
 
-## Демо-режим и настоящий агент
+## Агент и демо-режим
 
-Пока нет `validator/pipeline.py` с функцией `run_pipeline`, сайт работает на `web/mock_pipeline.py`:
-читает файл, режет его на требования эвристиками и ищет дефекты без LLM. В шапке горит «демо-конвейер»,
-в отчёте модель — «нет». Как только агент появится, веб переключится на него без правок кода.
-Контракт — [web-contract.md](web-contract.md).
+Агент лежит в `validator/`. Веб вызывает его через адаптер `validator/contract.py`
+(`run_pipeline(doc_path, on_progress, gitlab, options)`), который запускает тот же
+`validator.pipeline.run_pipeline`, что и CLI (`python main.py <вход> <отчёт.md>`), и переводит результат
+в схему [web-contract.md](web-contract.md). Поэтому `report.md` из браузера и из консоли одинаковый.
+
+- Модель и ключ берутся из `.env` (см. `.env.example`): `LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_FALLBACK`.
+- `LLM_PROVIDER=mock` — детерминированный агент без сети (для проверки интерфейса).
+- `VALIDATOR_MOCK=1` — старый эвристический демо-конвейер `web/mock_pipeline.py`.
+- Если выбран проект GitLab, файлы выбранных scopes выгружаются во временную папку и передаются агенту
+  как контекст проекта: расхождения ТЗ с кодом попадают на вкладку «ТЗ ↔ код» со ссылкой на файл.
+- Экран «Критерии» показывает ровно то, что проверяет агент (`validator/criteria.py`).
 
 ## Экраны
 

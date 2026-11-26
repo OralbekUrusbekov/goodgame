@@ -1,0 +1,4943 @@
+{
+  "metadata": {
+    "title": "Уведомление о расходах по карте",
+    "source_path": "docs/requirements.md",
+    "run_at": "2026-11-26T15:49:07.887748+05:00",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "segmentation_warnings": [
+      "R-71: цитата сегмента не найдена в источнике"
+    ],
+    "coverage_percent": 100.0,
+    "coverage_units": {
+      "covered": 55,
+      "total": 55
+    },
+    "coverage_skipped_units": [
+      {
+        "text": "| Техническое требование зафиксировано и покрывает бизнес-требование | Да / Нет | Да / Нет | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Функциональная спецификация имеет структурированное описание (по стандарту, шаблону) | Да / Нет | Да / Нет | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Требование покрывает спецификацию UX/UI дизайна | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Требование может быть протестировано | Да / Нет | Да / Нет | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Требование предусматривает модель данных или поток, содержит описание | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Требование не имеет противоречий или явных показателей операционных рисков | Да / Нет | Да / Нет | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Все изменения, влияющие на иные продукты/системы в требовании, согласованы с ответственными лицами | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| В требовании присутствует схема полного бизнес-процесса и часть реализуемой доработки | Да / Нет | Да / Нет | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Требование носит интеграционный характер и имеет четкую постановку реализации интеграционного взаимодействия | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| Поддерживается версионность документа / зафиксирована | Да / Нет | Да / Нет | |",
+        "section": "Ревью требований",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| | | |",
+        "section": "Блок согласующих",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "| **Swagger** | — |",
+        "section": "Общие параметры",
+        "reason": "пустая или шаблонная строка таблицы"
+      },
+      {
+        "text": "Комплект из двух исходных документов. Текст требований не вычитывался и не исправлялся. Часть B — дочерняя спецификация, на которую ссылается раздел интеграции в части A.",
+        "section": "Уведомление о расходах по карте",
+        "reason": "Метаданные о структуре документа"
+      },
+      {
+        "text": "---",
+        "section": "Блок согласующих",
+        "reason": "Пустой шаблон или разделитель"
+      },
+      {
+        "text": "| **Наименование задачи** | Месячный порог расходов по карте |",
+        "section": "Общие сведения",
+        "reason": "Метаданные задачи"
+      },
+      {
+        "text": "| **Продукт** | Мобильный банк, учебный кейс |",
+        "section": "Общие сведения",
+        "reason": "Метаданные продукта"
+      },
+      {
+        "text": "| **Бизнес-процесс** | Информирование держателя карты |",
+        "section": "Общие сведения",
+        "reason": "Метаданные бизнес-процесса"
+      },
+      {
+        "text": "| **Business owner / Product owner / Аналитик** | Учебные роли розничного бизнеса, владельца мобильного банка и аналитика команды |",
+        "section": "Общие сведения",
+        "reason": "Метаданные ролей"
+      },
+      {
+        "text": "| **Тип работы** | Новый функционал |",
+        "section": "Общие сведения",
+        "reason": "Метаданные типа работы"
+      },
+      {
+        "text": "| **Влияние на ИС** | Мобильный банк, карточный процессинг, сервис уведомлений |",
+        "section": "Общие сведения",
+        "reason": "Перечисление систем без описания логики взаимодействия"
+      },
+      {
+        "text": "| **Задача в JIRA** | Практикум без Jira-задачи |",
+        "section": "Общие сведения",
+        "reason": "Метаданные (ссылка на задачу)"
+      },
+      {
+        "text": "заполняются тестировщиками",
+        "section": "Тестирование требований",
+        "reason": "Пустой шаблон/плейсхолдер"
+      },
+      {
+        "text": "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.",
+        "section": "Ревью требований",
+        "reason": "Пояснение к заполнению шаблона"
+      },
+      {
+        "text": "| **URL type** | Dev / Prod |",
+        "section": "Общие параметры",
+        "reason": "Технические параметры окружения"
+      },
+      {
+        "text": "| **Gitlab project** | Учебный контур |",
+        "section": "Общие параметры",
+        "reason": "Технические параметры окружения"
+      },
+      {
+        "text": "| **Framework** | Учебный контур |",
+        "section": "Общие параметры",
+        "reason": "Технические параметры окружения"
+      },
+      {
+        "text": "| **Author** | Школа тестирования |",
+        "section": "Общие параметры",
+        "reason": "Метаданные автора"
+      },
+      {
+        "text": "| **Developer** | Команда практикума |",
+        "section": "Общие параметры",
+        "reason": "Метаданные разработчика"
+      }
+    ],
+    "llm_calls": 1,
+    "cache_hits": 11,
+    "llm_requests": 12,
+    "models_by_step": {
+      "segment_1": [
+        "gemini:gemini-3-flash-preview (кэш)"
+      ],
+      "segment_2": [
+        "gemini:gemini-3-flash-preview (кэш)"
+      ],
+      "coverage": [
+        "gemini:gemini-3-flash-preview (кэш)"
+      ],
+      "check": [
+        "gemini:gemini-3-flash-preview (кэш)",
+        "gemini:gemini-3-flash-preview (кэш)",
+        "gemini:gemini-3-flash-preview (кэш)",
+        "gemini:gemini-3-flash-preview (кэш)",
+        "gemini:gemini-3-flash-preview (кэш)",
+        "gemini:gemini-3-flash-preview (кэш)",
+        "gemini:gemini-3-flash-preview (кэш)"
+      ],
+      "set_consistency": [
+        "gemini:gemini-3-flash-preview (кэш)"
+      ],
+      "set_completeness": [
+        "gemini:gemini-3-flash-preview"
+      ]
+    },
+    "duration_seconds": 39.768,
+    "input_sha256": "8c2b35d617f1629bef0871ec058658b51b2dc093b75eadb3cb59487f4e7da6b5",
+    "agent_version": "0.1.0+3741f61-dirty",
+    "git_tag": "—",
+    "context_used": false
+  },
+  "requirements": [
+    {
+      "report_id": "R-01",
+      "source_id": "—",
+      "section": "Цели",
+      "short_text": "Цель функционала",
+      "quote": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+      "quote_verified": true,
+      "line_number": 23
+    },
+    {
+      "report_id": "R-02",
+      "source_id": "—",
+      "section": "Архитектура решения",
+      "short_text": "Интеграция настроек",
+      "quote": "Мобильное приложение → сервис настроек.",
+      "quote_verified": true,
+      "line_number": 26
+    },
+    {
+      "report_id": "R-03",
+      "source_id": "—",
+      "section": "Архитектура решения",
+      "short_text": "Поток уведомлений",
+      "quote": "Карточный процессинг → учёт расходов → сервис push.",
+      "quote_verified": true,
+      "line_number": 26
+    },
+    {
+      "report_id": "R-04",
+      "source_id": "—",
+      "section": "Дизайн процесса UI",
+      "short_text": "Путь в интерфейсе",
+      "quote": "Карты → Расходы → Уведомления.",
+      "quote_verified": true,
+      "line_number": 29
+    },
+    {
+      "report_id": "R-05",
+      "source_id": "—",
+      "section": "Дизайн процесса UI",
+      "short_text": "Состав элементов экрана",
+      "quote": "На экране видны переключатель, поле «Порог, ₸», сумма за месяц и кнопка «Сохранить».",
+      "quote_verified": true,
+      "line_number": 29
+    },
+    {
+      "report_id": "R-06",
+      "source_id": "—",
+      "section": "Дизайн процесса UI",
+      "short_text": "Отображение ошибок ввода",
+      "quote": "При ошибке ввода сообщение появляется под полем.",
+      "quote_verified": true,
+      "line_number": 29
+    },
+    {
+      "report_id": "R-07",
+      "source_id": "—",
+      "section": "BPMN схема процесса",
+      "short_text": "Шаг 1: Покупка",
+      "quote": "Проведение покупки",
+      "quote_verified": true,
+      "line_number": 34
+    },
+    {
+      "report_id": "R-08",
+      "source_id": "—",
+      "section": "BPMN схема процесса",
+      "short_text": "Шаг 2: Пересчет",
+      "quote": "пересчёт расходов",
+      "quote_verified": true,
+      "line_number": 34
+    },
+    {
+      "report_id": "R-09",
+      "source_id": "—",
+      "section": "BPMN схема процесса",
+      "short_text": "Шаг 3: Проверка",
+      "quote": "проверка порога",
+      "quote_verified": true,
+      "line_number": 34
+    },
+    {
+      "report_id": "R-10",
+      "source_id": "—",
+      "section": "BPMN схема процесса",
+      "short_text": "Шаг 4: Отправка",
+      "quote": "при достижении отправка push",
+      "quote_verified": true,
+      "line_number": 34
+    },
+    {
+      "report_id": "R-11",
+      "source_id": "—",
+      "section": "BPMN схема процесса",
+      "short_text": "Шаг 5: Завершение",
+      "quote": "завершение",
+      "quote_verified": true,
+      "line_number": 34
+    },
+    {
+      "report_id": "R-12",
+      "source_id": "Ф-1",
+      "section": "Функциональные требования",
+      "short_text": "Диапазон порога",
+      "quote": "Держатель активной карты KZT задаёт целый порог от 1 000 до 1 000 000 ₸ включительно.",
+      "quote_verified": true,
+      "line_number": 37
+    },
+    {
+      "report_id": "R-13",
+      "source_id": "Ф-1",
+      "section": "Функциональные требования",
+      "short_text": "Состояние по умолчанию",
+      "quote": "По умолчанию уведомление выключено.",
+      "quote_verified": true,
+      "line_number": 37
+    },
+    {
+      "report_id": "R-14",
+      "source_id": "Ф-2",
+      "section": "Функциональные требования",
+      "short_text": "Часовой пояс учета",
+      "quote": "Месяц определяется по дате совершения покупки в Алматы.",
+      "quote_verified": true,
+      "line_number": 38
+    },
+    {
+      "report_id": "R-15",
+      "source_id": "Ф-2",
+      "section": "Функциональные требования",
+      "short_text": "Состав расходов",
+      "quote": "В расходы входят проведённые покупки.",
+      "quote_verified": true,
+      "line_number": 38
+    },
+    {
+      "report_id": "R-16",
+      "source_id": "Ф-2",
+      "section": "Функциональные требования",
+      "short_text": "Обработка возвратов",
+      "quote": "Возврат уменьшает расходы месяца исходной покупки.",
+      "quote_verified": true,
+      "line_number": 38
+    },
+    {
+      "report_id": "R-17",
+      "source_id": "Ф-2",
+      "section": "Функциональные требования",
+      "short_text": "Исключения из расходов",
+      "quote": "Переводы и снятие наличных исключаются.",
+      "quote_verified": true,
+      "line_number": 38
+    },
+    {
+      "report_id": "R-18",
+      "source_id": "Ф-3",
+      "section": "Функциональные требования",
+      "short_text": "Условие отправки push",
+      "quote": "Когда расходы переходят от суммы ниже порога к сумме, равной порогу или выше, клиент получает push.",
+      "quote_verified": true,
+      "line_number": 39
+    },
+    {
+      "report_id": "R-19",
+      "source_id": "Ф-3",
+      "section": "Функциональные требования",
+      "short_text": "Лимит уведомлений",
+      "quote": "На карту приходится максимум один такой push за календарный месяц.",
+      "quote_verified": true,
+      "line_number": 39
+    },
+    {
+      "report_id": "R-20",
+      "source_id": "Ф-4",
+      "section": "Функциональные требования",
+      "short_text": "Сохранение суммы при смене порога",
+      "quote": "При изменении порога накопленная сумма сохраняется.",
+      "quote_verified": true,
+      "line_number": 40
+    },
+    {
+      "report_id": "R-21",
+      "source_id": "Ф-4",
+      "section": "Функциональные требования",
+      "short_text": "Логика после изменения порога",
+      "quote": "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.",
+      "quote_verified": true,
+      "line_number": 40
+    },
+    {
+      "report_id": "R-22",
+      "source_id": "—",
+      "section": "Sequence Diagram",
+      "short_text": "Событие покупки",
+      "quote": "Процессинг → сервис расходов: проведена покупка.",
+      "quote_verified": true,
+      "line_number": 43
+    },
+    {
+      "report_id": "R-23",
+      "source_id": "—",
+      "section": "Sequence Diagram",
+      "short_text": "Запрос настроек",
+      "quote": "Сервис расходов → настройки: получить порог карты.",
+      "quote_verified": true,
+      "line_number": 43
+    },
+    {
+      "report_id": "R-24",
+      "source_id": "—",
+      "section": "Sequence Diagram",
+      "short_text": "Данные для push",
+      "quote": "Сервис расходов → push: передать последние четыре цифры карты и сумму при достижении порога.",
+      "quote_verified": true,
+      "line_number": 43
+    },
+    {
+      "report_id": "R-25",
+      "source_id": "—",
+      "section": "Нефункциональные требования",
+      "short_text": "Время доставки push",
+      "quote": "Сервис передаёт push на отправку в течение минуты после получения события.",
+      "quote_verified": true,
+      "line_number": 46
+    },
+    {
+      "report_id": "R-26",
+      "source_id": "—",
+      "section": "Требования к данным",
+      "short_text": "Состав хранимых данных",
+      "quote": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.",
+      "quote_verified": true,
+      "line_number": 49
+    },
+    {
+      "report_id": "R-27",
+      "source_id": "—",
+      "section": "Требования к интеграции",
+      "short_text": "Источник API",
+      "quote": "Приложение читает и сохраняет настройки через дочерний документ «Уведомление о расходах по карте — REST API».",
+      "quote_verified": true,
+      "line_number": 52
+    },
+    {
+      "report_id": "R-28",
+      "source_id": "—",
+      "section": "Требования к интеграции",
+      "short_text": "Идемпотентность обработки",
+      "quote": "Повторная доставка одного события процессинга сохраняет исходный итог.",
+      "quote_verified": true,
+      "line_number": 52
+    },
+    {
+      "report_id": "R-29",
+      "source_id": "—",
+      "section": "Критерии приемки",
+      "short_text": "Кейс: Достижение порога",
+      "quote": "Расходы 48 500 ₸, порог 50 000 ₸ → Провести покупку на 1 500 ₸ → Итог 50 000 ₸ и один push",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-30",
+      "source_id": "—",
+      "section": "Критерии приемки",
+      "short_text": "Кейс: Смена месяца",
+      "quote": "Покупка 31 января в 23:58 на 4 000 ₸ → Провести 1 февраля в 00:03 по Алматы → Февральский счётчик вырос на 4 000 ₸",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-31",
+      "source_id": "—",
+      "section": "Критерии приемки",
+      "short_text": "Кейс: Исключение перевода",
+      "quote": "Расходы 19 900 ₸, порог 20 000 ₸ → Перевести 500 ₸ → Счётчик показывает 19 900 ₸",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-32",
+      "source_id": "U-013",
+      "section": "Ревью требований",
+      "short_text": "Согласование архитектуры",
+      "quote": "Требование содержит архитектуру и согласовано с архитекторами",
+      "quote_verified": true,
+      "line_number": 80
+    },
+    {
+      "report_id": "R-33",
+      "source_id": "U-014",
+      "section": "Ревью требований",
+      "short_text": "Отсутствие рисков информационной безопасности",
+      "quote": "Структура требований не несёт изменений и рисков информационной безопасности",
+      "quote_verified": true,
+      "line_number": 82
+    },
+    {
+      "report_id": "R-34",
+      "source_id": "—",
+      "section": "Общие параметры",
+      "short_text": "Цель метода",
+      "quote": "Сохранение порога. Функциональные требования: чтение порога",
+      "quote_verified": true,
+      "line_number": 103
+    },
+    {
+      "report_id": "R-35",
+      "source_id": "—",
+      "section": "Общие параметры",
+      "short_text": "Тип REST-запроса",
+      "quote": "REST type: GET",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-36",
+      "source_id": "—",
+      "section": "Общие параметры",
+      "short_text": "Авторизация",
+      "quote": "Authorization: Bearer, сессия владельца карты",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-37",
+      "source_id": "—",
+      "section": "Общие параметры",
+      "short_text": "Контроллер",
+      "quote": "Controller: AlertsController",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-38",
+      "source_id": "—",
+      "section": "Общие параметры",
+      "short_text": "URL для разработки",
+      "quote": "Dev: /alerts/saveLimit",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-39",
+      "source_id": "—",
+      "section": "Общие параметры",
+      "short_text": "Пример CURL",
+      "quote": "curl -G \"$BASE/alerts/saveLimit\" -H \"Authorization: Bearer $TOKEN\" --data 'cardId=demo-42&amount=50000&enabled=1'",
+      "quote_verified": true,
+      "line_number": 109
+    },
+    {
+      "report_id": "R-40",
+      "source_id": "—",
+      "section": "Логика работы метода",
+      "short_text": "Вызов метода → Проверка сессии → Сессия проверена",
+      "quote": "1. Проверить пользовательскую сессию.",
+      "quote_verified": true,
+      "line_number": 117
+    },
+    {
+      "report_id": "R-41",
+      "source_id": "—",
+      "section": "Логика работы метода",
+      "short_text": "Вызов метода → Проверка владения → Принадлежность карты проверена",
+      "quote": "2. Проверить принадлежность карты клиенту.",
+      "quote_verified": true,
+      "line_number": 118
+    },
+    {
+      "report_id": "R-42",
+      "source_id": "—",
+      "section": "Логика работы метода",
+      "short_text": "Вызов метода → Проверка параметров → Сумма и переключатель проверены",
+      "quote": "3. Проверить сумму и переключатель.",
+      "quote_verified": true,
+      "line_number": 119
+    },
+    {
+      "report_id": "R-43",
+      "source_id": "—",
+      "section": "Логика работы метода",
+      "short_text": "Валидные данные → Замена настройки → Настройка заменена и результат возвращен",
+      "quote": "4. Заменить настройку и вернуть результат сохранения.",
+      "quote_verified": true,
+      "line_number": 120
+    },
+    {
+      "report_id": "R-44",
+      "source_id": "—",
+      "section": "Логика работы метода",
+      "short_text": "Ошибка суммы → Откат изменений → Состояние восстановлено и результат ERROR",
+      "quote": "5. При отклонении суммы вернуть прежнее состояние и результат ERROR.",
+      "quote_verified": true,
+      "line_number": 121
+    },
+    {
+      "report_id": "R-45",
+      "source_id": "—",
+      "section": "Особые правила",
+      "short_text": "Формат суммы",
+      "quote": "1. Целое число тенге, обе границы включены.",
+      "quote_verified": true,
+      "line_number": 124
+    },
+    {
+      "report_id": "R-46",
+      "source_id": "—",
+      "section": "Особые правила",
+      "short_text": "Замена настройки",
+      "quote": "2. Повторное сохранение заменяет действующую настройку.",
+      "quote_verified": true,
+      "line_number": 125
+    },
+    {
+      "report_id": "R-47",
+      "source_id": "—",
+      "section": "Особые правила",
+      "short_text": "Сохранение расходов",
+      "quote": "3. Изменение порога сохраняет накопленные расходы.",
+      "quote_verified": true,
+      "line_number": 126
+    },
+    {
+      "report_id": "R-48",
+      "source_id": "—",
+      "section": "Схема",
+      "short_text": "Поток данных",
+      "quote": "Приложение → AlertsController → хранилище настроек → AlertsController → приложение.",
+      "quote_verified": true,
+      "line_number": 130
+    },
+    {
+      "report_id": "R-49",
+      "source_id": "—",
+      "section": "Path-параметры",
+      "short_text": "Отсутствие Path-параметров",
+      "quote": "Не используются.",
+      "quote_verified": true,
+      "line_number": 136
+    },
+    {
+      "report_id": "R-50",
+      "source_id": "—",
+      "section": "Query-параметры",
+      "short_text": "Параметр cardId",
+      "quote": "cardId | string | 1–64 | Да | Карта клиента | Идентификатор карты | card_id",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-51",
+      "source_id": "—",
+      "section": "Query-параметры",
+      "short_text": "Параметр amount",
+      "quote": "amount | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | limit_kzt",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-52",
+      "source_id": "—",
+      "section": "Query-параметры",
+      "short_text": "Параметр enabled",
+      "quote": "enabled | integer | 1 знак | Да | 0 или 1 | Признак включения | enabled",
+      "quote_verified": true,
+      "line_number": 169
+    },
+    {
+      "report_id": "R-53",
+      "source_id": "—",
+      "section": "Request body",
+      "short_text": "Тип контента",
+      "quote": "Content-Type: application/json",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-54",
+      "source_id": "—",
+      "section": "Request body",
+      "short_text": "Отсутствие тела запроса",
+      "quote": "Тело не используется.",
+      "quote_verified": true,
+      "line_number": 148
+    },
+    {
+      "report_id": "R-55",
+      "source_id": "—",
+      "section": "Ответ",
+      "short_text": "Критерий успеха",
+      "quote": "Если результат 200 или 201 — успешный.",
+      "quote_verified": true,
+      "line_number": 151
+    },
+    {
+      "report_id": "R-56",
+      "source_id": "—",
+      "section": "Ответ",
+      "short_text": "Критерий ошибки",
+      "quote": "Если результат 400, 401 и далее — неуспешный.",
+      "quote_verified": true,
+      "line_number": 151
+    },
+    {
+      "report_id": "R-57",
+      "source_id": "—",
+      "section": "Ответ",
+      "short_text": "Поле result",
+      "quote": "result | string | OK / ERROR | Исход сохранения | —",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-58",
+      "source_id": "—",
+      "section": "Ответ",
+      "short_text": "Поле amount",
+      "quote": "amount | string | При успехе | Порог в тенге | limit_kzt",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-59",
+      "source_id": "—",
+      "section": "Ответ",
+      "short_text": "Поле enabled",
+      "quote": "enabled | string | «0» или «1» | Признак включения | enabled",
+      "quote_verified": true,
+      "line_number": 169
+    },
+    {
+      "report_id": "R-60",
+      "source_id": "—",
+      "section": "Ответ",
+      "short_text": "Поле message",
+      "quote": "message | string | При ошибке | Описание ошибки | —",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-61",
+      "source_id": "—",
+      "section": "Статусы",
+      "short_text": "Успех → Возврат 200 → HTTP 200",
+      "quote": "200. Ответ в случае успешного выполнения метода.",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-62",
+      "source_id": "—",
+      "section": "Статусы",
+      "short_text": "Неверные параметры → Возврат 400 → HTTP 400",
+      "quote": "400. Ответ в случае, если параметры запроса заполнены неверно.",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-63",
+      "source_id": "U-021",
+      "section": "200. Successful — Created",
+      "short_text": "Формат ответа при ошибке проверки суммы",
+      "quote": "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}",
+      "quote_verified": true,
+      "line_number": 171
+    },
+    {
+      "report_id": "R-64",
+      "source_id": "—",
+      "section": "Статусы",
+      "short_text": "Нет авторизации → Возврат 401 → HTTP 401",
+      "quote": "401. Ответ в случае, если запрос выполнен без необходимой авторизации.",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-65",
+      "source_id": "—",
+      "section": "Статусы",
+      "short_text": "Ошибка сервера → Возврат 500 → HTTP 500",
+      "quote": "500. Ответ в случае, если произошла внутренняя ошибка сервера.",
+      "quote_verified": true,
+      "line_number": null
+    },
+    {
+      "report_id": "R-66",
+      "source_id": "U-022",
+      "section": "400. Unsuccessful — Bad request",
+      "short_text": "Формат ответа при некорректном запросе",
+      "quote": "{\"message\":\"Некорректный запрос\"}",
+      "quote_verified": true,
+      "line_number": 180
+    },
+    {
+      "report_id": "R-67",
+      "source_id": "U-023",
+      "section": "401. Unsuccessful — Unauthorized",
+      "short_text": "Формат ответа при отсутствии авторизации",
+      "quote": "{\"message\":\"Требуется вход\"}",
+      "quote_verified": true,
+      "line_number": 185
+    },
+    {
+      "report_id": "R-68",
+      "source_id": "—",
+      "section": "Статусы",
+      "short_text": "Чужая/нет карты → Возврат 404 → HTTP 404",
+      "quote": "Для чужой карты возвращается 404, как и для отсутствующей карты.",
+      "quote_verified": true,
+      "line_number": 189
+    },
+    {
+      "report_id": "R-69",
+      "source_id": "U-024",
+      "section": "403. Unsuccessful — Forbidden",
+      "short_text": "Формат ответа при отсутствии карты",
+      "quote": "{\"message\":\"Карта не найдена\"}",
+      "quote_verified": true,
+      "line_number": 192
+    },
+    {
+      "report_id": "R-70",
+      "source_id": "U-025",
+      "section": "500. Unsuccessful — Internal server error",
+      "short_text": "Формат ответа при внутренней ошибке сервиса",
+      "quote": "{\"message\":\"Ошибка сервиса\"}",
+      "quote_verified": true,
+      "line_number": 197
+    },
+    {
+      "report_id": "R-71",
+      "source_id": "U-012",
+      "section": "Ревью требований",
+      "short_text": "Наличие схемы отката или скрытия функционала",
+      "quote": "Реализация задачи/проекта предусматривает схему отката решений ... При невозможности отката — варианты скрытия функционала",
+      "quote_verified": false,
+      "line_number": null
+    }
+  ],
+  "requirement_checks": [
+    {
+      "requirement_id": "R-01",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-02",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "violation",
+        "feasible": "ok",
+        "verifiable": "violation",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указан протокол взаимодействия и перечень передаваемых данных (чтение или запись настроек).",
+          "fix": "Указать, что мобильное приложение взаимодействует с сервисом настроек через REST API для получения и обновления параметров порога.",
+          "quote": "Мобильное приложение → сервис настроек.",
+          "location": "Архитектура решения, строка 26",
+          "requirement_ids": [
+            "R-02"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "singular",
+          "severity": "minor",
+          "explanation": "Требование объединяет два разных процесса: чтение текущих настроек и сохранение новых.",
+          "fix": "Разделить на два требования: для получения настроек и для их изменения.",
+          "quote": "Мобильное приложение → сервис настроек.",
+          "location": "Архитектура решения, строка 26",
+          "requirement_ids": [
+            "R-02"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Мобильное приложение взаимодействует с сервисом настроек через REST API для чтения и сохранения параметров уведомлений."
+    },
+    {
+      "requirement_id": "R-03",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "violation",
+        "feasible": "ok",
+        "verifiable": "violation",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не описан механизм передачи событий между системами (очереди, API) и условия инициации push.",
+          "fix": "Описать поток данных: событие транзакции из процессинга поступает в сервис учета, который при достижении лимита вызывает сервис push.",
+          "quote": "Карточный процессинг → учёт расходов → сервис push.",
+          "location": "Архитектура решения, строка 26",
+          "requirement_ids": [
+            "R-03"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Событие о покупке передается из карточного процессинга в сервис учета расходов, который при достижении порога инициирует отправку уведомления через сервис push."
+    },
+    {
+      "requirement_id": "R-04",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "minor",
+          "explanation": "Неясно, являются ли указанные элементы пунктами меню, кнопками или заголовками экранов.",
+          "fix": "Описать путь пользователя: 'В разделе Карты выбрать карту, перейти в подраздел Расходы и выбрать пункт Уведомления'.",
+          "quote": "Карты → Расходы → Уведомления.",
+          "location": "Дизайн процесса UI, строка 29",
+          "requirement_ids": [
+            "R-04"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не указана точка входа в процесс навигации.",
+          "fix": "Указать полный путь, начиная с главного экрана приложения.",
+          "quote": "Карты → Расходы → Уведомления.",
+          "location": "Дизайн процесса UI, строка 29",
+          "requirement_ids": [
+            "R-04"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Пользователь переходит к настройкам уведомлений по пути: Главный экран -> Карты -> Выбор карты -> Расходы -> Уведомления."
+    },
+    {
+      "requirement_id": "R-05",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-06",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "violation",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не определен текст сообщения об ошибке и условия его отображения.",
+          "fix": "Указать текст ошибки, например: 'Введите сумму от 1 000 до 1 000 000'.",
+          "quote": "При ошибке ввода сообщение появляется под полем.",
+          "location": "Дизайн процесса UI, строка 29",
+          "requirement_ids": [
+            "R-06"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "При вводе значения вне допустимого диапазона под полем «Порог, ₸» отображается сообщение об ошибке валидации с текстом 'Введите сумму от 1 000 до 1 000 000'."
+    },
+    {
+      "requirement_id": "R-07",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано событие-триггер, инициирующее процесс, и входные данные.",
+          "fix": "Уточнить: 'Процесс начинается при получении уведомления об успешной авторизации покупки от карточного процессинга'.",
+          "quote": "Проведение покупки",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-07"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Процесс инициируется при получении сервисом учета расходов уведомления о проведении покупки от карточного процессинга."
+    },
+    {
+      "requirement_id": "R-08",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указаны правила агрегации: период (календарный месяц) и типы учитываемых операций.",
+          "fix": "Уточнить: 'Сервис производит пересчет накопленной суммы покупок в тенге за текущий календарный месяц'.",
+          "quote": "пересчёт расходов",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-08"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Сервис производит пересчет накопленной суммы покупок в тенге за текущий календарный месяц с учетом новой операции."
+    },
+    {
+      "requirement_id": "R-09",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано условие проверки (сравнение с лимитом) и проверка статуса включения уведомлений.",
+          "fix": "Уточнить: 'Система проверяет, превышает ли новая сумма расходов установленный порог, при условии, что уведомления включены'.",
+          "quote": "проверка порога",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-09"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Система проверяет, превышает ли новая накопленная сумма установленный пользователем порог, при условии, что уведомления включены."
+    },
+    {
+      "requirement_id": "R-10",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано содержание push-уведомления и ограничение на количество отправок в месяц.",
+          "fix": "Указать: 'При первом достижении порога в календарном месяце отправить push-уведомление с маскированным номером карты и суммой'.",
+          "quote": "при достижении отправка push",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-10"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "При первом в текущем календарном месяце достижении или превышении порога система инициирует отправку push-уведомления клиенту."
+    },
+    {
+      "requirement_id": "R-11",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-12",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-13",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано значение порога, которое должно быть установлено в системе по умолчанию, пока пользователь его не изменил.",
+          "fix": "Указать значение порога по умолчанию (например, 0 или минимально допустимое 1000).",
+          "quote": "По умолчанию уведомление выключено.",
+          "location": "Функциональные требования, строка 37",
+          "requirement_ids": [
+            "R-13"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "По умолчанию уведомление выключено (enabled=0), значение порога не задано."
+    },
+    {
+      "requirement_id": "R-14",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Термин «дата совершения покупки» может трактоваться и как дата транзакции (авторизации), и как дата финансового подтверждения (клиринга). В R-15 при этом упоминаются «проведённые» покупки.",
+          "fix": "Уточнить, используется ли дата авторизации или дата проводки (settlement).",
+          "quote": "Месяц определяется по дате совершения покупки в Алматы.",
+          "location": "Функциональные требования, строка 38",
+          "requirement_ids": [
+            "R-14"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Расчетный месяц определяется по дате совершения операции (transaction date) в часовом поясе Алматы (UTC+5)."
+    },
+    {
+      "requirement_id": "R-15",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Понятие «проведённые покупки» не определено. Это может означать как успешную авторизацию, так и окончательное списание (settlement).",
+          "fix": "Заменить на технически точный статус операции (например, «в статусе Исполнена»).",
+          "quote": "В расходы входят проведённые покупки.",
+          "location": "Функциональные требования, строка 38",
+          "requirement_ids": [
+            "R-15"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "В сумму расходов включаются только успешно завершенные операции (settlement) с типом «Покупка»."
+    },
+    {
+      "requirement_id": "R-16",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "violation",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не описано поведение системы, если возврат происходит в следующем месяце: должен ли пересчитываться статус отправки push за прошлый месяц.",
+          "fix": "Уточнить, влияет ли возврат на возможность повторной отправки push в прошлом месяце.",
+          "quote": "Возврат уменьшает расходы месяца исходной покупки.",
+          "location": "Функциональные требования, строка 38",
+          "requirement_ids": [
+            "R-16"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Операция возврата уменьшает накопленную сумму расходов того календарного месяца, в котором была совершена исходная покупка. Если за этот месяц уже был отправлен push, повторный push в этом месяце не отправляется."
+    },
+    {
+      "requirement_id": "R-17",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Список исключений может быть неполным (например, не указаны комиссии, корректировки, налоги).",
+          "fix": "Дополнить список или указать, что исключаются все типы операций, кроме «Покупка».",
+          "quote": "Переводы и снятие наличных исключаются.",
+          "location": "Функциональные требования, строка 38",
+          "requirement_ids": [
+            "R-17"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Операции с типами «Перевод», «Снятие наличных», а также комиссии банка исключаются из расчета суммы расходов."
+    },
+    {
+      "requirement_id": "R-18",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-19",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "violation",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "correct",
+          "severity": "major",
+          "explanation": "Требование потенциально противоречит R-21. Если пользователь изменил порог, R-21 разрешает новый push, что может привести к двум push за месяц, нарушая R-19.",
+          "fix": "Добавить исключение для случая изменения настроек.",
+          "quote": "На карту приходится максимум один такой push за календарный месяц.",
+          "location": "Функциональные требования, строка 39",
+          "requirement_ids": [
+            "R-19"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "В рамках одной настройки порога отправляется не более одного push-уведомления за календарный месяц. При изменении порога лимит отправок сбрасывается согласно Ф-4."
+    },
+    {
+      "requirement_id": "R-20",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-21",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не определено поведение, если в момент изменения порога текущая сумма расходов уже выше или равна новому порогу.",
+          "fix": "Указать, отправляется ли push немедленно или при следующей покупке.",
+          "quote": "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.",
+          "location": "Функциональные требования, строка 40",
+          "requirement_ids": [
+            "R-21"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Если накопленная сумма ниже нового порога, push отправляется при следующем достижении порога. Если на момент смены порога сумма уже выше или равна ему, push не отправляется до конца месяца или до следующего изменения порога."
+    },
+    {
+      "requirement_id": "R-22",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "В описании шага диаграммы не указаны передаваемые атрибуты (ID карты, сумма, дата).",
+          "fix": "Указать состав передаваемых данных.",
+          "quote": "Процессинг → сервис расходов: проведена покупка.",
+          "location": "Sequence Diagram, строка 43",
+          "requirement_ids": [
+            "R-22"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Процессинг передает в сервис расходов событие об успешной операции, содержащее: ID карты, сумму в тиынах, тип операции и дату совершения."
+    },
+    {
+      "requirement_id": "R-23",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не указано поведение, если настройки для карты отсутствуют (первая покупка).",
+          "fix": "Уточнить, что возвращается значение по умолчанию.",
+          "quote": "Сервис расходов → настройки: получить порог карты.",
+          "location": "Sequence Diagram, строка 43",
+          "requirement_ids": [
+            "R-23"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Сервис расходов запрашивает у сервиса настроек текущее значение порога и статус уведомления (enabled) для данной карты."
+    },
+    {
+      "requirement_id": "R-24",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Для отправки push недостаточно номера карты и суммы, необходим идентификатор клиента или токен устройства.",
+          "fix": "Добавить идентификатор клиента в состав передаваемых данных.",
+          "quote": "Сервис расходов → push: передать последние четыре цифры карты и сумму при достижении порога.",
+          "location": "Sequence Diagram, строка 43",
+          "requirement_ids": [
+            "R-24"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Сервис расходов передает в сервис push-уведомлений: ID клиента, последние четыре цифры номера карты и текущую накопленную сумму расходов."
+    },
+    {
+      "requirement_id": "R-25",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "violation",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Фраза «получения события» не уточняет, о каком именно событии идёт речь (проведение покупки в процессинге или получение сигнала о достижении порога сервисом push).",
+          "fix": "Уточнить тип события.",
+          "quote": "после получения события",
+          "location": "Нефункциональные требования, строка 46",
+          "requirement_ids": [
+            "R-25"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не указан процентиль времени доставки (например, 95-й или 99-й), что делает требование неполным для высоконагруженных систем.",
+          "fix": "Добавить процентиль (например, 95-й процентиль).",
+          "quote": "в течение минуты",
+          "location": "Нефункциональные требования, строка 46",
+          "requirement_ids": [
+            "R-25"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "verifiable",
+          "severity": "major",
+          "explanation": "«В течение минуты» — расплывчатая формулировка. Для проверки необходимы точные секунды и точки отсчёта.",
+          "fix": "Заменить на «в течение 60 секунд».",
+          "quote": "в течение минуты",
+          "location": "Нефункциональные требования, строка 46",
+          "requirement_ids": [
+            "R-25"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Сервис передаёт push на отправку в течение 60 секунд (95-й процентиль) после получения уведомления о достижении порога от сервиса расходов."
+    },
+    {
+      "requirement_id": "R-26",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "violation",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "violation"
+      },
+      "findings": [
+        {
+          "criterion": "singular",
+          "severity": "minor",
+          "explanation": "Требование содержит перечисление множества разнородных полей данных, которые лучше разделить или сгруппировать.",
+          "fix": "Разделить на логические группы (данные операции, настройки клиента).",
+          "quote": "Хранить идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки и порог в тенге.",
+          "location": "Требования к данным, строка 49",
+          "requirement_ids": [
+            "R-26"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "conforming",
+          "severity": "major",
+          "explanation": "Использование разных единиц измерения (тиыны для суммы покупки и тенге для порога) в рамках одной записи данных нарушает единообразие и может привести к ошибкам расчёта.",
+          "fix": "Использовать единую единицу измерения (тиыны) для всех денежных полей.",
+          "quote": "сумму покупки в тиынах, признак отправки и порог в тенге",
+          "location": "Требования к данным, строка 49",
+          "requirement_ids": [
+            "R-26"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Система должна хранить следующие данные: идентификатор карты, месяц, идентификатор операции, сумму покупки в тиынах, признак отправки push-уведомления и значение порога в тиынах."
+    },
+    {
+      "requirement_id": "R-27",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "violation",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "singular",
+          "severity": "minor",
+          "explanation": "Требование объединяет две разные операции: чтение и сохранение настроек.",
+          "fix": "Разделить на два требования: одно для чтения, другое для сохранения.",
+          "quote": "Приложение читает и сохраняет настройки",
+          "location": "Требования к интеграции, строка 52",
+          "requirement_ids": [
+            "R-27"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Дочерний документ (Часть B) не содержит описания метода для чтения настроек, только для сохранения (saveLimit).",
+          "fix": "Добавить описание метода чтения (например, getLimit) в Часть B.",
+          "quote": "через дочерний документ «Уведомление о расходах по карте — REST API»",
+          "location": "Требования к интеграции, строка 52",
+          "requirement_ids": [
+            "R-27"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Приложение должно сохранять настройки через метод saveLimit и считывать их через метод getLimit (описание которого необходимо добавить в Часть B), согласно документу «Уведомление о расходах по карте — REST API»."
+    },
+    {
+      "requirement_id": "R-28",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Фраза «сохраняет исходный итог» двусмысленна: непонятно, имеется в виду состояние до транзакции или результат первой обработки.",
+          "fix": "Использовать формулировку «не изменяет состояние системы».",
+          "quote": "сохраняет исходный итог",
+          "location": "Требования к интеграции, строка 52",
+          "requirement_ids": [
+            "R-28"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано, как система должна идентифицировать «одно и то же» событие (отсутствует ссылка на уникальный ID транзакции).",
+          "fix": "Указать использование Transaction ID для проверки дубликатов.",
+          "quote": "Повторная доставка одного события",
+          "location": "Требования к интеграции, строка 52",
+          "requirement_ids": [
+            "R-28"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "При повторной доставке события процессинга с тем же Transaction ID система не должна изменять накопленную сумму расходов и не должна отправлять повторное push-уведомление."
+    },
+    {
+      "requirement_id": "R-29",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-30",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "violation",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "correct",
+          "severity": "major",
+          "explanation": "Ожидаемый результат (рост февральского счетчика) противоречит правилу Ф-2, так как покупка совершена 31 января, а месяц определяется по дате покупки.",
+          "fix": "Изменить ожидаемый результат на рост январского счетчика.",
+          "quote": "Февральский счётчик вырос на 4 000 ₸",
+          "location": "Критерии приемки, строка 64",
+          "requirement_ids": [
+            "R-30"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Покупка 31 января в 23:58 на 4 000 ₸ → Провести 1 февраля в 00:03 по Алматы → Январский счётчик вырос на 4 000 ₸"
+    },
+    {
+      "requirement_id": "R-31",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-32",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "violation",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "appropriate",
+          "severity": "minor",
+          "explanation": "Это пункт чек-листа процесса проверки документа, а не требование к разрабатываемой системе.",
+          "fix": "Перенести в протокол ревью или переформулировать в требование соответствия архитектуре.",
+          "quote": "Требование содержит архитектуру и согласовано с архитекторами",
+          "location": "Ревью требований, строка 80",
+          "requirement_ids": [
+            "R-32"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Реализация системы должна соответствовать архитектурной схеме, описанной в разделе «Архитектура решения»."
+    },
+    {
+      "requirement_id": "R-33",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "violation",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "appropriate",
+          "severity": "minor",
+          "explanation": "Это декларативное утверждение о свойствах самого документа, а не требование к системе.",
+          "fix": "Удалить или переформулировать в требование безопасности продукта.",
+          "quote": "Структура требований не несёт изменений и рисков информационной безопасности",
+          "location": "Ревью требований, строка 82",
+          "requirement_ids": [
+            "R-33"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Функционал уведомлений должен соответствовать корпоративным требованиям информационной безопасности банка."
+    },
+    {
+      "requirement_id": "R-34",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "ok",
+        "singular": "violation",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "violation",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Описание цели метода противоречиво: заголовок говорит о сохранении, а уточнение — о чтении.",
+          "fix": "Указать одну цель (сохранение порога).",
+          "quote": "Сохранение порога. Функциональные требования: чтение порога",
+          "location": "Общие параметры, строка 103",
+          "requirement_ids": [
+            "R-34"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "correct",
+          "severity": "critical",
+          "explanation": "В разделе «Логика работы метода» (Часть B) описано именно сохранение (замена настройки), а не чтение.",
+          "fix": "Удалить упоминание чтения порога из описания метода сохранения.",
+          "quote": "Функциональные требования: чтение порога",
+          "location": "Общие параметры, строка 103",
+          "requirement_ids": [
+            "R-34"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Описание: Метод предназначен для сохранения (обновления) значения порога расходов по карте."
+    },
+    {
+      "requirement_id": "R-35",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "violation",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "violation",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "appropriate",
+          "severity": "critical",
+          "explanation": "Использование метода GET для изменения состояния сервера (сохранения порога) нарушает принципы REST (идемпотентность и безопасность GET).",
+          "fix": "Изменить тип метода на POST или PUT.",
+          "quote": "| **REST type** | GET |",
+          "location": "Общие параметры, строка 104",
+          "requirement_ids": [
+            "R-35"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "correct",
+          "severity": "critical",
+          "explanation": "Тип запроса GET противоречит логике метода «Заменить настройку» и примеру CURL, где передаются данные для изменения.",
+          "fix": "Указать REST type: POST.",
+          "quote": "| **REST type** | GET |",
+          "location": "Общие параметры, строка 104",
+          "requirement_ids": [
+            "R-35"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "REST type: POST"
+    },
+    {
+      "requirement_id": "R-36",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-37",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-38",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-39",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-40",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+          "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+          "quote": "1. Проверить пользовательскую сессию.",
+          "location": "Логика работы метода, строка 117",
+          "requirement_ids": [
+            "R-40"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Система должна проверить валидность сессии пользователя; при невалидной сессии вернуть HTTP 401."
+    },
+    {
+      "requirement_id": "R-41",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+          "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+          "quote": "2. Проверить принадлежность карты клиенту.",
+          "location": "Логика работы метода, строка 118",
+          "requirement_ids": [
+            "R-41"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Система должна проверить принадлежность cardId текущему пользователю; если карта не принадлежит пользователю, вернуть HTTP 404."
+    },
+    {
+      "requirement_id": "R-42",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+          "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+          "quote": "3. Проверить сумму и переключатель.",
+          "location": "Логика работы метода, строка 119",
+          "requirement_ids": [
+            "R-42"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Система должна проверить, что amount находится в диапазоне 1 000–1 000 000, а enabled принимает значения 0 или 1; при ошибке вернуть HTTP 400."
+    },
+    {
+      "requirement_id": "R-43",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "violation",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "singular",
+          "severity": "minor",
+          "explanation": "Требование объединяет два действия: модификацию данных и формирование ответа.",
+          "fix": "Разделить на два атомарных требования.",
+          "quote": "4. Заменить настройку и вернуть результат сохранения.",
+          "location": "Логика работы метода, строка 120",
+          "requirement_ids": [
+            "R-43"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Система должна обновить значения в хранилище настроек. После обновления система должна вернуть HTTP 200 с параметрами result, amount и enabled."
+    },
+    {
+      "requirement_id": "R-44",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "violation",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Неясно, что значит 'вернуть прежнее состояние', если проверка (шаг 3) должна предшествовать изменению (шаг 4).",
+          "fix": "Указать, что при ошибке валидации изменения в БД не вносятся.",
+          "quote": "вернуть прежнее состояние",
+          "location": "Логика работы метода, строка 121",
+          "requirement_ids": [
+            "R-44"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "correct",
+          "severity": "major",
+          "explanation": "Противоречие: в шаге 5 указан возврат 'result: ERROR', но в разделе 'Статусы' указано, что при неверных параметрах возвращается 400 Bad Request.",
+          "fix": "Привести к единому стандарту: возвращать HTTP 400 при ошибке валидации параметров.",
+          "quote": "результат ERROR",
+          "location": "Логика работы метода, строка 121",
+          "requirement_ids": [
+            "R-44"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "При невалидной сумме система не должна изменять данные в хранилище и должна вернуть HTTP 400 с описанием ошибки в поле message."
+    },
+    {
+      "requirement_id": "R-45",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указаны сами значения границ в тексте требования.",
+          "fix": "Указать диапазон: от 1 000 до 1 000 000 тенге.",
+          "quote": "обе границы включены",
+          "location": "Особые правила, строка 124",
+          "requirement_ids": [
+            "R-45"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Параметр amount должен быть целым числом в диапазоне от 1 000 до 1 000 000 тенге включительно."
+    },
+    {
+      "requirement_id": "R-46",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-47",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-48",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-49",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-50",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-51",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-52",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-53",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "violation",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "appropriate",
+          "severity": "minor",
+          "explanation": "Указание Content-Type для запроса избыточно, так как тело запроса не используется (R-54), а метод GET обычно не содержит тела.",
+          "fix": "Удалить требование к Content-Type для входящего запроса.",
+          "quote": "* **Content-Type:** `application/json` .",
+          "location": "Request body, строка 147",
+          "requirement_ids": [
+            "R-53"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Заголовок Content-Type в запросе не требуется, так как тело запроса не используется."
+    },
+    {
+      "requirement_id": "R-54",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-55",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "violation",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не определены условия, при которых возвращается код 201. В разделе «Статусы» описание для 201 отсутствует.",
+          "fix": "Уточнить условия возврата 201 или оставить только 200.",
+          "quote": "Если результат 200 или 201 — успешный.",
+          "location": "Ответ, строка 151",
+          "requirement_ids": [
+            "R-55"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "correct",
+          "severity": "minor",
+          "explanation": "В разделе «Статусы» код 200 назван «Successful — Created», хотя Created — это стандартное описание кода 201.",
+          "fix": "Исправить описание кода 200 на «OK».",
+          "quote": "200. Successful — Created",
+          "location": "200. Successful — Created, строка 165",
+          "requirement_ids": [
+            "R-55"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Успешным результатом считается HTTP-статус 200 (OK)."
+    },
+    {
+      "requirement_id": "R-56",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Формулировка «и далее» не определяет верхнюю границу кодов и конкретный перечень обрабатываемых ошибок.",
+          "fix": "Указать конкретный диапазон кодов (например, 400-599) или перечислить все поддерживаемые коды.",
+          "quote": "Если результат 400, 401 и далее — неуспешный.",
+          "location": "Ответ, строка 151",
+          "requirement_ids": [
+            "R-56"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Неуспешным результатом считаются HTTP-статусы в диапазоне 400–599."
+    },
+    {
+      "requirement_id": "R-57",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "violation"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "В таблице параметров ответа отсутствует колонка «Mandatory» (Обязательность), которая есть в таблице запроса.",
+          "fix": "Добавить колонку «Mandatory» в таблицу описания ответа.",
+          "quote": "| `result` | string | OK / ERROR | Исход сохранения | — |",
+          "location": "Ответ, строка 155",
+          "requirement_ids": [
+            "R-57"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "result | string | Да | OK / ERROR | Исход сохранения | —"
+    },
+    {
+      "requirement_id": "R-58",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "violation"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указана обязательность поля в таблице. Тип данных (string) противоречит типу в запросе (integer, R-51).",
+          "fix": "Добавить колонку Mandatory и привести типы данных к единообразию (integer).",
+          "quote": "| `amount` | string | При успехе | Порог в тенге | `limit_kzt` |",
+          "location": "Ответ, строка 156",
+          "requirement_ids": [
+            "R-58"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "amount | integer | Да (при result=OK) | Порог в тенге | limit_kzt"
+    },
+    {
+      "requirement_id": "R-59",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "violation"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "В таблице ответа не указана обязательность поля.",
+          "fix": "Добавить колонку Mandatory и указать условия присутствия поля.",
+          "quote": "| `enabled` | string | «0» или «1» | Признак включения | `enabled` |",
+          "location": "Ответ, строка 157",
+          "requirement_ids": [
+            "R-59"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "enabled | string | Да (при result=OK) | Признак включения | enabled"
+    },
+    {
+      "requirement_id": "R-60",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "violation"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указана обязательность поля в таблице параметров.",
+          "fix": "Добавить колонку Mandatory и указать, что поле обязательно при ошибке.",
+          "quote": "| `message` | string | При ошибке | Описание ошибки | — |",
+          "location": "Ответ, строка 158",
+          "requirement_ids": [
+            "R-60"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "message | string | Да (при result=ERROR) | Описание ошибки | —"
+    },
+    {
+      "requirement_id": "R-61",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-62",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "violation",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Фраза «параметры запроса заполнены неверно» не содержит ссылок на конкретные правила валидации (типы, диапазоны, обязательность), описанные в таблице параметров.",
+          "fix": "Уточнить: «400. Ответ в случае, если параметры cardId, amount или enabled не соответствуют формату или ограничениям, указанным в разделе Параметры запроса».",
+          "quote": "**400.** Ответ в случае, если параметры запроса заполнены неверно.",
+          "location": "Статусы, строка 163",
+          "requirement_ids": [
+            "R-62"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "400. Ответ в случае, если параметры запроса (cardId, amount, enabled) не соответствуют типам данных или ограничениям, указанным в спецификации."
+    },
+    {
+      "requirement_id": "R-63",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "violation",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "correct",
+          "severity": "major",
+          "explanation": "Возврат бизнес-ошибки (result: ERROR) с HTTP-статусом 200 OK является антипаттерном REST и вводит в заблуждение вызывающую сторону.",
+          "fix": "Использовать для ошибок валидации статус 400 Bad Request.",
+          "quote": "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}",
+          "location": "200. Successful — Created, строка 171",
+          "requirement_ids": [
+            "R-63"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "major",
+          "explanation": "Пример ответа с ошибкой (ERROR) находится в разделе, озаглавленном как «Successful — Created».",
+          "fix": "Перенести данный пример в раздел описания статуса 400.",
+          "quote": "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}",
+          "location": "200. Successful — Created, строка 171",
+          "requirement_ids": [
+            "R-63",
+            "R-62"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "При ошибке валидации суммы (amount) сервер должен возвращать HTTP-статус 400 Bad Request с телом: {\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}."
+    },
+    {
+      "requirement_id": "R-64",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-65",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [],
+      "rewrite": ""
+    },
+    {
+      "requirement_id": "R-66",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное (OK / ERROR).",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Некорректный запрос\"}",
+          "location": "400. Unsuccessful — Bad request, строка 180",
+          "requirement_ids": [
+            "R-66"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "{\"result\":\"ERROR\", \"message\":\"Некорректный запрос\"}"
+    },
+    {
+      "requirement_id": "R-67",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Требуется вход\"}",
+          "location": "401. Unsuccessful — Unauthorized, строка 185",
+          "requirement_ids": [
+            "R-67"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "{\"result\":\"ERROR\", \"message\":\"Требуется вход\"}"
+    },
+    {
+      "requirement_id": "R-68",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "Логика возврата статуса 404 описана внутри раздела, посвященного статусу 403 Forbidden.",
+          "fix": "Вынести описание логики 404 в отдельный заголовок или раздел.",
+          "quote": "Для чужой карты возвращается 404, как и для отсутствующей карты.",
+          "location": "403. Unsuccessful — Forbidden, строка 189",
+          "requirement_ids": [
+            "R-68",
+            "R-69"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "В случае, если карта не принадлежит клиенту или не найдена в системе, сервер должен возвращать HTTP-статус 404 Not Found."
+    },
+    {
+      "requirement_id": "R-69",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Карта не найдена\"}",
+          "location": "403. Unsuccessful — Forbidden, строка 192",
+          "requirement_ids": [
+            "R-69"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "{\"result\":\"ERROR\", \"message\":\"Карта не найдена\"}"
+    },
+    {
+      "requirement_id": "R-70",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "ok",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "ok",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Ошибка сервиса\"}",
+          "location": "500. Unsuccessful — Internal server error, строка 197",
+          "requirement_ids": [
+            "R-70"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "{\"result\":\"ERROR\", \"message\":\"Ошибка сервиса\"}"
+    },
+    {
+      "requirement_id": "R-71",
+      "verdicts": {
+        "necessary": "ok",
+        "appropriate": "ok",
+        "unambiguous": "violation",
+        "complete": "ok",
+        "singular": "ok",
+        "feasible": "ok",
+        "verifiable": "violation",
+        "correct": "ok",
+        "conforming": "ok"
+      },
+      "findings": [
+        {
+          "criterion": "unambiguous",
+          "severity": "major",
+          "explanation": "Термины «схема отката» и «варианты скрытия функционала» не определены. Неясно, идет ли речь о техническом откате (DB rollback), Feature Toggle или бизнес-процессе. [цитата не подтверждена]",
+          "fix": "Уточнить технический способ реализации (например, использование Feature Toggle и скриптов миграции БД).",
+          "quote": "Реализация задачи/проекта предусматривает схему отката решений ... При невозможности отката — варианты скрытия функционала",
+          "location": "Раздел не определён",
+          "requirement_ids": [
+            "R-71"
+          ],
+          "related_quotes": [],
+          "quote_verified": false,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "verifiable",
+          "severity": "major",
+          "explanation": "Отсутствует объективный критерий проверки «схемы отката» — не указано, в каком виде она должна быть представлена.",
+          "fix": "Указать необходимость наличия документации по откату и настроенного механизма переключения функционала.",
+          "quote": "Реализация задачи/проекта предусматривает схему отката решений",
+          "location": "Ревью требований, строка 76",
+          "requirement_ids": [
+            "R-71"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "rewrite": "Техническое решение должно включать документированный план отката (rollback plan) изменений в БД и API, а также механизм оперативного отключения функционала (feature toggle) без повторного деплоя."
+    }
+  ],
+  "set_check": {
+    "verdicts": {
+      "complete": "violation",
+      "consistent": "violation",
+      "feasible": "ok",
+      "comprehensible": "ok",
+      "able_to_be_validated": "violation",
+      "ranked_importance_stability": "n.a.",
+      "modifiable": "ok",
+      "traceable": "violation"
+    },
+    "findings": [
+      {
+        "criterion": "complete",
+        "severity": "critical",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (указание заполнить позднее); из-за этого спецификация неполна.",
+        "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+        "quote": "заполняются тестировщиками",
+        "location": "Тестирование требований, строка 57",
+        "requirement_ids": [],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "critical",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (явно незаполненное поле, неотмеченный выбор); из-за этого спецификация неполна.",
+        "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+        "quote": "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.",
+        "location": "Ревью требований, строка 68",
+        "requirement_ids": [],
+        "related_quotes": [
+          "| Техническое требование зафиксировано и покрывает бизнес-требование | Да / Нет | Да / Нет | |",
+          "| Функциональная спецификация имеет структурированное описание (по стандарту, шаблону) | Да / Нет | Да / Нет | |",
+          "| Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Требование покрывает спецификацию UX/UI дизайна | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Реализация задачи/проекта предусматривает схему отката решений | Да / Нет / Не требуется | Да / Нет / Не требуется | При невозможности отката — варианты скрытия функционала |",
+          "| Требование может быть протестировано | Да / Нет | Да / Нет | |",
+          "| Требование предусматривает модель данных или поток, содержит описание | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Требование не имеет противоречий или явных показателей операционных рисков | Да / Нет | Да / Нет | |",
+          "| Требование содержит архитектуру и согласовано с архитекторами | Да / Нет / Не требуется | Да / Нет / Не требуется | Для архитектуры — чек-лист |",
+          "| Все изменения, влияющие на иные продукты/системы в требовании, согласованы с ответственными лицами | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Структура требований не несёт изменений и рисков информационной безопасности | Да / Нет | Да / Нет | По информационной безопасности — чек-лист |",
+          "| В требовании присутствует схема полного бизнес-процесса и часть реализуемой доработки | Да / Нет | Да / Нет | |",
+          "| Требование носит интеграционный характер и имеет четкую постановку реализации интеграционного взаимодействия | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Поддерживается версионность документа / зафиксирована | Да / Нет | Да / Нет | |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "critical",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (пустая строка таблицы); из-за этого спецификация неполна.",
+        "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+        "quote": "| | | |",
+        "location": "Блок согласующих, строка 91",
+        "requirement_ids": [],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (пустое значение таблицы); из-за этого спецификация неполна.",
+        "fix": "Заменить плейсхолдеры конкретными значениями либо явно обосновать неприменимость полей.",
+        "quote": "| **Swagger** | — |",
+        "location": "Общие параметры, строка 110",
+        "requirement_ids": [],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "critical",
+        "explanation": "Использование метода GET для операции изменения данных (сохранения порога) противоречит семантике протокола HTTP и принципам REST. GET должен использоваться только для чтения.",
+        "fix": "Изменить REST type на POST или PUT, обновить пример CURL и URL (убрать save из пути).",
+        "quote": "| **REST type** | GET |",
+        "location": "Общие параметры, строка 104",
+        "requirement_ids": [
+          "R-34",
+          "R-35"
+        ],
+        "related_quotes": [
+          "Сохранение порога. Функциональные требования: чтение порога",
+          "| **REST type** | GET |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "major",
+        "explanation": "Противоречие в логике определения периода. Требование Ф-2 указывает на дату совершения покупки, а критерий приемки относит покупку от 31 января к февралю на основании даты проведения (процессинга).",
+        "fix": "Скорректировать ожидаемый результат в критерии приемки: покупка от 31 января должна увеличивать январский счетчик.",
+        "quote": "Месяц определяется по дате совершения покупки в Алматы.",
+        "location": "Функциональные требования, строка 38",
+        "requirement_ids": [
+          "R-14",
+          "R-30"
+        ],
+        "related_quotes": [
+          "Месяц определяется по дате совершения покупки в Алматы.",
+          "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "Указан Content-Type: application/json, при этом явно зафиксировано, что тело запроса не используется (параметры передаются в Query).",
+        "fix": "Удалить заголовок Content-Type из требований к запросу, так как тело отсутствует.",
+        "quote": "Тело не используется.",
+        "location": "Request body, строка 148",
+        "requirement_ids": [
+          "R-53",
+          "R-54"
+        ],
+        "related_quotes": [
+          "* **Content-Type:** `application/json` .",
+          "Тело не используется."
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "Типы данных полей amount и enabled различаются в запросе (integer) и ответе (string), что усложняет обработку на стороне клиента.",
+        "fix": "Установить единый тип данных (integer) для полей amount и enabled в запросе и ответе.",
+        "quote": "| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |",
+        "location": "Query-параметры, строка 143",
+        "requirement_ids": [
+          "R-51",
+          "R-58"
+        ],
+        "related_quotes": [
+          "| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |",
+          "| `amount` | string | При успехе | Порог в тенге | `limit_kzt` |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "conforming",
+        "severity": "critical",
+        "explanation": "Использование метода GET для операции сохранения (изменения состояния) нарушает стандарты REST и создает риски безопасности (параметры логируются в URL).",
+        "fix": "Изменить метод на POST или PUT, передавать параметры в теле запроса.",
+        "quote": "| **REST type** | GET |",
+        "location": "Общие параметры, строка 104",
+        "requirement_ids": [
+          "R-35"
+        ],
+        "related_quotes": [
+          "| **Request URL** | Dev: `/alerts/saveLimit` . Prod: — |"
+        ],
+        "quote_verified": true,
+        "confidence": "high",
+        "expert_confirmation": true
+      },
+      {
+        "criterion": "unambiguous",
+        "severity": "minor",
+        "explanation": "Термин 'активная карта' не определен (статус в процессинге, наличие флага блокировки и т.д.).",
+        "fix": "Добавить определение активной карты в глоссарий или раздел данных.",
+        "quote": "Держатель активной карты KZT задаёт целый порог",
+        "location": "Функциональные требования, строка 37",
+        "requirement_ids": [
+          "R-12"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "appropriate",
+        "severity": "major",
+        "explanation": "Передача cardId и суммы в Query-параметрах при сохранении настроек является небезопасной практикой (PII в логах).",
+        "fix": "Перенести cardId и amount в Request Body.",
+        "quote": "| `cardId` | string | 1–64 | Да | Карта клиента | Идентификатор карты | `card_id` |",
+        "location": "Query-параметры, строка 142",
+        "requirement_ids": [
+          "R-50"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": "high",
+        "expert_confirmation": true
+      }
+    ],
+    "missing_sections": [
+      "Swagger (отсутствует ссылка)",
+      "Production URL (не указан)",
+      "Нефункциональные требования к API (latency, throughput)",
+      "Версионность документа (не заполнена в ревью)",
+      "Версия документа",
+      "История изменений",
+      "Лист согласования (заполненный)",
+      "Информационная безопасность (содержательный анализ)",
+      "План отката (конкретные шаги)"
+    ],
+    "traceability": "Связь между бизнес-целью и функциональными требованиями прослеживается, но нарушена в части API (описание метода противоречит его логике). Разрыв между функциональными требованиями и критериями приемки: не покрыты ветки возвратов, лимитов уведомлений и смены настроек.",
+    "traceability_matrix": [
+      {
+        "goal": "Дать клиенту возможность узнать о достижении личного бюджета",
+        "goal_quote": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+        "requirement_ids": [
+          "R-12",
+          "R-18",
+          "R-19"
+        ],
+        "acceptance_ids": [
+          "R-29"
+        ],
+        "api_ids": [
+          "R-34"
+        ],
+        "status": "inconsistent"
+      },
+      {
+        "goal": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки",
+        "goal_quote": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+        "requirement_ids": [
+          "R-12",
+          "R-18",
+          "R-19"
+        ],
+        "acceptance_ids": [
+          "R-29"
+        ],
+        "api_ids": [
+          "R-34",
+          "R-51"
+        ],
+        "status": "partial"
+      },
+      {
+        "goal": "Учет специфики времени и типов операций",
+        "goal_quote": "Месяц определяется по дате совершения покупки в Алматы.",
+        "requirement_ids": [
+          "R-14",
+          "R-15",
+          "R-16",
+          "R-17"
+        ],
+        "acceptance_ids": [
+          "R-30",
+          "R-31"
+        ],
+        "api_ids": [],
+        "status": "partial"
+      },
+      {
+        "goal": "Управление настройками через мобильное приложение",
+        "goal_quote": "Мобильное приложение → сервис настроек.",
+        "requirement_ids": [
+          "R-20",
+          "R-21"
+        ],
+        "acceptance_ids": [],
+        "api_ids": [
+          "R-38",
+          "R-39",
+          "R-43"
+        ],
+        "status": "partial"
+      }
+    ]
+  },
+  "summary": {
+    "requirement_count": 71,
+    "finding_count": 72,
+    "by_severity": {
+      "critical": 8,
+      "major": 40,
+      "minor": 24
+    },
+    "by_criterion": {
+      "appropriate": 5,
+      "complete": 32,
+      "conforming": 2,
+      "consistent": 10,
+      "correct": 7,
+      "singular": 4,
+      "unambiguous": 10,
+      "verifiable": 2
+    },
+    "critical_defects": [
+      {
+        "criterion": "verifiable",
+        "severity": "major",
+        "explanation": "«В течение минуты» — расплывчатая формулировка. Для проверки необходимы точные секунды и точки отсчёта.",
+        "fix": "Заменить на «в течение 60 секунд».",
+        "quote": "в течение минуты",
+        "location": "Нефункциональные требования, строка 46",
+        "requirement_ids": [
+          "R-25"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "verifiable",
+        "severity": "major",
+        "explanation": "Отсутствует объективный критерий проверки «схемы отката» — не указано, в каком виде она должна быть представлена.",
+        "fix": "Указать необходимость наличия документации по откату и настроенного механизма переключения функционала.",
+        "quote": "Реализация задачи/проекта предусматривает схему отката решений",
+        "location": "Ревью требований, строка 76",
+        "requirement_ids": [
+          "R-71"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "major",
+        "explanation": "Пример ответа с ошибкой (ERROR) находится в разделе, озаглавленном как «Successful — Created».",
+        "fix": "Перенести данный пример в раздел описания статуса 400.",
+        "quote": "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}",
+        "location": "200. Successful — Created, строка 171",
+        "requirement_ids": [
+          "R-63",
+          "R-62"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное (OK / ERROR).",
+        "fix": "Добавить поле «result» в JSON-ответ.",
+        "quote": "{\"message\":\"Некорректный запрос\"}",
+        "location": "400. Unsuccessful — Bad request, строка 180",
+        "requirement_ids": [
+          "R-66"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+        "fix": "Добавить поле «result» в JSON-ответ.",
+        "quote": "{\"message\":\"Требуется вход\"}",
+        "location": "401. Unsuccessful — Unauthorized, строка 185",
+        "requirement_ids": [
+          "R-67"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "Логика возврата статуса 404 описана внутри раздела, посвященного статусу 403 Forbidden.",
+        "fix": "Вынести описание логики 404 в отдельный заголовок или раздел.",
+        "quote": "Для чужой карты возвращается 404, как и для отсутствующей карты.",
+        "location": "403. Unsuccessful — Forbidden, строка 189",
+        "requirement_ids": [
+          "R-68",
+          "R-69"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+        "fix": "Добавить поле «result» в JSON-ответ.",
+        "quote": "{\"message\":\"Карта не найдена\"}",
+        "location": "403. Unsuccessful — Forbidden, строка 192",
+        "requirement_ids": [
+          "R-69"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+        "fix": "Добавить поле «result» в JSON-ответ.",
+        "quote": "{\"message\":\"Ошибка сервиса\"}",
+        "location": "500. Unsuccessful — Internal server error, строка 197",
+        "requirement_ids": [
+          "R-70"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "critical",
+        "explanation": "Использование метода GET для операции изменения данных (сохранения порога) противоречит семантике протокола HTTP и принципам REST. GET должен использоваться только для чтения.",
+        "fix": "Изменить REST type на POST или PUT, обновить пример CURL и URL (убрать save из пути).",
+        "quote": "| **REST type** | GET |",
+        "location": "Общие параметры, строка 104",
+        "requirement_ids": [
+          "R-34",
+          "R-35"
+        ],
+        "related_quotes": [
+          "Сохранение порога. Функциональные требования: чтение порога",
+          "| **REST type** | GET |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "major",
+        "explanation": "Противоречие в логике определения периода. Требование Ф-2 указывает на дату совершения покупки, а критерий приемки относит покупку от 31 января к февралю на основании даты проведения (процессинга).",
+        "fix": "Скорректировать ожидаемый результат в критерии приемки: покупка от 31 января должна увеличивать январский счетчик.",
+        "quote": "Месяц определяется по дате совершения покупки в Алматы.",
+        "location": "Функциональные требования, строка 38",
+        "requirement_ids": [
+          "R-14",
+          "R-30"
+        ],
+        "related_quotes": [
+          "Месяц определяется по дате совершения покупки в Алматы.",
+          "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "Указан Content-Type: application/json, при этом явно зафиксировано, что тело запроса не используется (параметры передаются в Query).",
+        "fix": "Удалить заголовок Content-Type из требований к запросу, так как тело отсутствует.",
+        "quote": "Тело не используется.",
+        "location": "Request body, строка 148",
+        "requirement_ids": [
+          "R-53",
+          "R-54"
+        ],
+        "related_quotes": [
+          "* **Content-Type:** `application/json` .",
+          "Тело не используется."
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "consistent",
+        "severity": "minor",
+        "explanation": "Типы данных полей amount и enabled различаются в запросе (integer) и ответе (string), что усложняет обработку на стороне клиента.",
+        "fix": "Установить единый тип данных (integer) для полей amount и enabled в запросе и ответе.",
+        "quote": "| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |",
+        "location": "Query-параметры, строка 143",
+        "requirement_ids": [
+          "R-51",
+          "R-58"
+        ],
+        "related_quotes": [
+          "| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |",
+          "| `amount` | string | При успехе | Порог в тенге | `limit_kzt` |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указан протокол взаимодействия и перечень передаваемых данных (чтение или запись настроек).",
+        "fix": "Указать, что мобильное приложение взаимодействует с сервисом настроек через REST API для получения и обновления параметров порога.",
+        "quote": "Мобильное приложение → сервис настроек.",
+        "location": "Архитектура решения, строка 26",
+        "requirement_ids": [
+          "R-02"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не описан механизм передачи событий между системами (очереди, API) и условия инициации push.",
+        "fix": "Описать поток данных: событие транзакции из процессинга поступает в сервис учета, который при достижении лимита вызывает сервис push.",
+        "quote": "Карточный процессинг → учёт расходов → сервис push.",
+        "location": "Архитектура решения, строка 26",
+        "requirement_ids": [
+          "R-03"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "minor",
+        "explanation": "Не указана точка входа в процесс навигации.",
+        "fix": "Указать полный путь, начиная с главного экрана приложения.",
+        "quote": "Карты → Расходы → Уведомления.",
+        "location": "Дизайн процесса UI, строка 29",
+        "requirement_ids": [
+          "R-04"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "minor",
+        "explanation": "Не определен текст сообщения об ошибке и условия его отображения.",
+        "fix": "Указать текст ошибки, например: 'Введите сумму от 1 000 до 1 000 000'.",
+        "quote": "При ошибке ввода сообщение появляется под полем.",
+        "location": "Дизайн процесса UI, строка 29",
+        "requirement_ids": [
+          "R-06"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано событие-триггер, инициирующее процесс, и входные данные.",
+        "fix": "Уточнить: 'Процесс начинается при получении уведомления об успешной авторизации покупки от карточного процессинга'.",
+        "quote": "Проведение покупки",
+        "location": "BPMN схема процесса, строка 34",
+        "requirement_ids": [
+          "R-07"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указаны правила агрегации: период (календарный месяц) и типы учитываемых операций.",
+        "fix": "Уточнить: 'Сервис производит пересчет накопленной суммы покупок в тенге за текущий календарный месяц'.",
+        "quote": "пересчёт расходов",
+        "location": "BPMN схема процесса, строка 34",
+        "requirement_ids": [
+          "R-08"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано условие проверки (сравнение с лимитом) и проверка статуса включения уведомлений.",
+        "fix": "Уточнить: 'Система проверяет, превышает ли новая сумма расходов установленный порог, при условии, что уведомления включены'.",
+        "quote": "проверка порога",
+        "location": "BPMN схема процесса, строка 34",
+        "requirement_ids": [
+          "R-09"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано содержание push-уведомления и ограничение на количество отправок в месяц.",
+        "fix": "Указать: 'При первом достижении порога в календарном месяце отправить push-уведомление с маскированным номером карты и суммой'.",
+        "quote": "при достижении отправка push",
+        "location": "BPMN схема процесса, строка 34",
+        "requirement_ids": [
+          "R-10"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано значение порога, которое должно быть установлено в системе по умолчанию, пока пользователь его не изменил.",
+        "fix": "Указать значение порога по умолчанию (например, 0 или минимально допустимое 1000).",
+        "quote": "По умолчанию уведомление выключено.",
+        "location": "Функциональные требования, строка 37",
+        "requirement_ids": [
+          "R-13"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не описано поведение системы, если возврат происходит в следующем месяце: должен ли пересчитываться статус отправки push за прошлый месяц.",
+        "fix": "Уточнить, влияет ли возврат на возможность повторной отправки push в прошлом месяце.",
+        "quote": "Возврат уменьшает расходы месяца исходной покупки.",
+        "location": "Функциональные требования, строка 38",
+        "requirement_ids": [
+          "R-16"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "minor",
+        "explanation": "Список исключений может быть неполным (например, не указаны комиссии, корректировки, налоги).",
+        "fix": "Дополнить список или указать, что исключаются все типы операций, кроме «Покупка».",
+        "quote": "Переводы и снятие наличных исключаются.",
+        "location": "Функциональные требования, строка 38",
+        "requirement_ids": [
+          "R-17"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не определено поведение, если в момент изменения порога текущая сумма расходов уже выше или равна новому порогу.",
+        "fix": "Указать, отправляется ли push немедленно или при следующей покупке.",
+        "quote": "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.",
+        "location": "Функциональные требования, строка 40",
+        "requirement_ids": [
+          "R-21"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "В описании шага диаграммы не указаны передаваемые атрибуты (ID карты, сумма, дата).",
+        "fix": "Указать состав передаваемых данных.",
+        "quote": "Процессинг → сервис расходов: проведена покупка.",
+        "location": "Sequence Diagram, строка 43",
+        "requirement_ids": [
+          "R-22"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "minor",
+        "explanation": "Не указано поведение, если настройки для карты отсутствуют (первая покупка).",
+        "fix": "Уточнить, что возвращается значение по умолчанию.",
+        "quote": "Сервис расходов → настройки: получить порог карты.",
+        "location": "Sequence Diagram, строка 43",
+        "requirement_ids": [
+          "R-23"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Для отправки push недостаточно номера карты и суммы, необходим идентификатор клиента или токен устройства.",
+        "fix": "Добавить идентификатор клиента в состав передаваемых данных.",
+        "quote": "Сервис расходов → push: передать последние четыре цифры карты и сумму при достижении порога.",
+        "location": "Sequence Diagram, строка 43",
+        "requirement_ids": [
+          "R-24"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "minor",
+        "explanation": "Не указан процентиль времени доставки (например, 95-й или 99-й), что делает требование неполным для высоконагруженных систем.",
+        "fix": "Добавить процентиль (например, 95-й процентиль).",
+        "quote": "в течение минуты",
+        "location": "Нефункциональные требования, строка 46",
+        "requirement_ids": [
+          "R-25"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Дочерний документ (Часть B) не содержит описания метода для чтения настроек, только для сохранения (saveLimit).",
+        "fix": "Добавить описание метода чтения (например, getLimit) в Часть B.",
+        "quote": "через дочерний документ «Уведомление о расходах по карте — REST API»",
+        "location": "Требования к интеграции, строка 52",
+        "requirement_ids": [
+          "R-27"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано, как система должна идентифицировать «одно и то же» событие (отсутствует ссылка на уникальный ID транзакции).",
+        "fix": "Указать использование Transaction ID для проверки дубликатов.",
+        "quote": "Повторная доставка одного события",
+        "location": "Требования к интеграции, строка 52",
+        "requirement_ids": [
+          "R-28"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+        "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+        "quote": "1. Проверить пользовательскую сессию.",
+        "location": "Логика работы метода, строка 117",
+        "requirement_ids": [
+          "R-40"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+        "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+        "quote": "2. Проверить принадлежность карты клиенту.",
+        "location": "Логика работы метода, строка 118",
+        "requirement_ids": [
+          "R-41"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+        "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+        "quote": "3. Проверить сумму и переключатель.",
+        "location": "Логика работы метода, строка 119",
+        "requirement_ids": [
+          "R-42"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указаны сами значения границ в тексте требования.",
+        "fix": "Указать диапазон: от 1 000 до 1 000 000 тенге.",
+        "quote": "обе границы включены",
+        "location": "Особые правила, строка 124",
+        "requirement_ids": [
+          "R-45"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не определены условия, при которых возвращается код 201. В разделе «Статусы» описание для 201 отсутствует.",
+        "fix": "Уточнить условия возврата 201 или оставить только 200.",
+        "quote": "Если результат 200 или 201 — успешный.",
+        "location": "Ответ, строка 151",
+        "requirement_ids": [
+          "R-55"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "minor",
+        "explanation": "В таблице параметров ответа отсутствует колонка «Mandatory» (Обязательность), которая есть в таблице запроса.",
+        "fix": "Добавить колонку «Mandatory» в таблицу описания ответа.",
+        "quote": "| `result` | string | OK / ERROR | Исход сохранения | — |",
+        "location": "Ответ, строка 155",
+        "requirement_ids": [
+          "R-57"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указана обязательность поля в таблице. Тип данных (string) противоречит типу в запросе (integer, R-51).",
+        "fix": "Добавить колонку Mandatory и привести типы данных к единообразию (integer).",
+        "quote": "| `amount` | string | При успехе | Порог в тенге | `limit_kzt` |",
+        "location": "Ответ, строка 156",
+        "requirement_ids": [
+          "R-58"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "В таблице ответа не указана обязательность поля.",
+        "fix": "Добавить колонку Mandatory и указать условия присутствия поля.",
+        "quote": "| `enabled` | string | «0» или «1» | Признак включения | `enabled` |",
+        "location": "Ответ, строка 157",
+        "requirement_ids": [
+          "R-59"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Не указана обязательность поля в таблице параметров.",
+        "fix": "Добавить колонку Mandatory и указать, что поле обязательно при ошибке.",
+        "quote": "| `message` | string | При ошибке | Описание ошибки | — |",
+        "location": "Ответ, строка 158",
+        "requirement_ids": [
+          "R-60"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "minor",
+        "explanation": "Фраза «параметры запроса заполнены неверно» не содержит ссылок на конкретные правила валидации (типы, диапазоны, обязательность), описанные в таблице параметров.",
+        "fix": "Уточнить: «400. Ответ в случае, если параметры cardId, amount или enabled не соответствуют формату или ограничениям, указанным в разделе Параметры запроса».",
+        "quote": "**400.** Ответ в случае, если параметры запроса заполнены неверно.",
+        "location": "Статусы, строка 163",
+        "requirement_ids": [
+          "R-62"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "critical",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (указание заполнить позднее); из-за этого спецификация неполна.",
+        "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+        "quote": "заполняются тестировщиками",
+        "location": "Тестирование требований, строка 57",
+        "requirement_ids": [],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "critical",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (явно незаполненное поле, неотмеченный выбор); из-за этого спецификация неполна.",
+        "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+        "quote": "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.",
+        "location": "Ревью требований, строка 68",
+        "requirement_ids": [],
+        "related_quotes": [
+          "| Техническое требование зафиксировано и покрывает бизнес-требование | Да / Нет | Да / Нет | |",
+          "| Функциональная спецификация имеет структурированное описание (по стандарту, шаблону) | Да / Нет | Да / Нет | |",
+          "| Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Требование покрывает спецификацию UX/UI дизайна | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Реализация задачи/проекта предусматривает схему отката решений | Да / Нет / Не требуется | Да / Нет / Не требуется | При невозможности отката — варианты скрытия функционала |",
+          "| Требование может быть протестировано | Да / Нет | Да / Нет | |",
+          "| Требование предусматривает модель данных или поток, содержит описание | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Требование не имеет противоречий или явных показателей операционных рисков | Да / Нет | Да / Нет | |",
+          "| Требование содержит архитектуру и согласовано с архитекторами | Да / Нет / Не требуется | Да / Нет / Не требуется | Для архитектуры — чек-лист |",
+          "| Все изменения, влияющие на иные продукты/системы в требовании, согласованы с ответственными лицами | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Структура требований не несёт изменений и рисков информационной безопасности | Да / Нет | Да / Нет | По информационной безопасности — чек-лист |",
+          "| В требовании присутствует схема полного бизнес-процесса и часть реализуемой доработки | Да / Нет | Да / Нет | |",
+          "| Требование носит интеграционный характер и имеет четкую постановку реализации интеграционного взаимодействия | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+          "| Поддерживается версионность документа / зафиксирована | Да / Нет | Да / Нет | |"
+        ],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "critical",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (пустая строка таблицы); из-за этого спецификация неполна.",
+        "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+        "quote": "| | | |",
+        "location": "Блок согласующих, строка 91",
+        "requirement_ids": [],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "complete",
+        "severity": "major",
+        "explanation": "Раздел содержит незаполненные элементы шаблона (пустое значение таблицы); из-за этого спецификация неполна.",
+        "fix": "Заменить плейсхолдеры конкретными значениями либо явно обосновать неприменимость полей.",
+        "quote": "| **Swagger** | — |",
+        "location": "Общие параметры, строка 110",
+        "requirement_ids": [],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "correct",
+        "severity": "critical",
+        "explanation": "В разделе «Логика работы метода» (Часть B) описано именно сохранение (замена настройки), а не чтение.",
+        "fix": "Удалить упоминание чтения порога из описания метода сохранения.",
+        "quote": "Функциональные требования: чтение порога",
+        "location": "Общие параметры, строка 103",
+        "requirement_ids": [
+          "R-34"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "appropriate",
+        "severity": "critical",
+        "explanation": "Использование метода GET для изменения состояния сервера (сохранения порога) нарушает принципы REST (идемпотентность и безопасность GET).",
+        "fix": "Изменить тип метода на POST или PUT.",
+        "quote": "| **REST type** | GET |",
+        "location": "Общие параметры, строка 104",
+        "requirement_ids": [
+          "R-35"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "correct",
+        "severity": "critical",
+        "explanation": "Тип запроса GET противоречит логике метода «Заменить настройку» и примеру CURL, где передаются данные для изменения.",
+        "fix": "Указать REST type: POST.",
+        "quote": "| **REST type** | GET |",
+        "location": "Общие параметры, строка 104",
+        "requirement_ids": [
+          "R-35"
+        ],
+        "related_quotes": [],
+        "quote_verified": true,
+        "confidence": null,
+        "expert_confirmation": false
+      },
+      {
+        "criterion": "conforming",
+        "severity": "critical",
+        "explanation": "Использование метода GET для операции сохранения (изменения состояния) нарушает стандарты REST и создает риски безопасности (параметры логируются в URL).",
+        "fix": "Изменить метод на POST или PUT, передавать параметры в теле запроса.",
+        "quote": "| **REST type** | GET |",
+        "location": "Общие параметры, строка 104",
+        "requirement_ids": [
+          "R-35"
+        ],
+        "related_quotes": [
+          "| **Request URL** | Dev: `/alerts/saveLimit` . Prod: — |"
+        ],
+        "quote_verified": true,
+        "confidence": "high",
+        "expert_confirmation": true
+      }
+    ],
+    "critical_groups": {
+      "unverifiable": [
+        {
+          "criterion": "verifiable",
+          "severity": "major",
+          "explanation": "«В течение минуты» — расплывчатая формулировка. Для проверки необходимы точные секунды и точки отсчёта.",
+          "fix": "Заменить на «в течение 60 секунд».",
+          "quote": "в течение минуты",
+          "location": "Нефункциональные требования, строка 46",
+          "requirement_ids": [
+            "R-25"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "verifiable",
+          "severity": "major",
+          "explanation": "Отсутствует объективный критерий проверки «схемы отката» — не указано, в каком виде она должна быть представлена.",
+          "fix": "Указать необходимость наличия документации по откату и настроенного механизма переключения функционала.",
+          "quote": "Реализация задачи/проекта предусматривает схему отката решений",
+          "location": "Ревью требований, строка 76",
+          "requirement_ids": [
+            "R-71"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "contradictory": [
+        {
+          "criterion": "consistent",
+          "severity": "major",
+          "explanation": "Пример ответа с ошибкой (ERROR) находится в разделе, озаглавленном как «Successful — Created».",
+          "fix": "Перенести данный пример в раздел описания статуса 400.",
+          "quote": "{\"result\":\"ERROR\",\"message\":\"Проверьте сумму\"}",
+          "location": "200. Successful — Created, строка 171",
+          "requirement_ids": [
+            "R-63",
+            "R-62"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное (OK / ERROR).",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Некорректный запрос\"}",
+          "location": "400. Unsuccessful — Bad request, строка 180",
+          "requirement_ids": [
+            "R-66"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Требуется вход\"}",
+          "location": "401. Unsuccessful — Unauthorized, строка 185",
+          "requirement_ids": [
+            "R-67"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "Логика возврата статуса 404 описана внутри раздела, посвященного статусу 403 Forbidden.",
+          "fix": "Вынести описание логики 404 в отдельный заголовок или раздел.",
+          "quote": "Для чужой карты возвращается 404, как и для отсутствующей карты.",
+          "location": "403. Unsuccessful — Forbidden, строка 189",
+          "requirement_ids": [
+            "R-68",
+            "R-69"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Карта не найдена\"}",
+          "location": "403. Unsuccessful — Forbidden, строка 192",
+          "requirement_ids": [
+            "R-69"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "В примере JSON отсутствует поле «result», которое в таблице «Ответ» указано как обязательное.",
+          "fix": "Добавить поле «result» в JSON-ответ.",
+          "quote": "{\"message\":\"Ошибка сервиса\"}",
+          "location": "500. Unsuccessful — Internal server error, строка 197",
+          "requirement_ids": [
+            "R-70"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "critical",
+          "explanation": "Использование метода GET для операции изменения данных (сохранения порога) противоречит семантике протокола HTTP и принципам REST. GET должен использоваться только для чтения.",
+          "fix": "Изменить REST type на POST или PUT, обновить пример CURL и URL (убрать save из пути).",
+          "quote": "| **REST type** | GET |",
+          "location": "Общие параметры, строка 104",
+          "requirement_ids": [
+            "R-34",
+            "R-35"
+          ],
+          "related_quotes": [
+            "Сохранение порога. Функциональные требования: чтение порога",
+            "| **REST type** | GET |"
+          ],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "major",
+          "explanation": "Противоречие в логике определения периода. Требование Ф-2 указывает на дату совершения покупки, а критерий приемки относит покупку от 31 января к февралю на основании даты проведения (процессинга).",
+          "fix": "Скорректировать ожидаемый результат в критерии приемки: покупка от 31 января должна увеличивать январский счетчик.",
+          "quote": "Месяц определяется по дате совершения покупки в Алматы.",
+          "location": "Функциональные требования, строка 38",
+          "requirement_ids": [
+            "R-14",
+            "R-30"
+          ],
+          "related_quotes": [
+            "Месяц определяется по дате совершения покупки в Алматы.",
+            "| Покупка 31 января в 23:58 на 4 000 ₸ | Провести 1 февраля в 00:03 по Алматы | Февральский счётчик вырос на 4 000 ₸ |"
+          ],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "Указан Content-Type: application/json, при этом явно зафиксировано, что тело запроса не используется (параметры передаются в Query).",
+          "fix": "Удалить заголовок Content-Type из требований к запросу, так как тело отсутствует.",
+          "quote": "Тело не используется.",
+          "location": "Request body, строка 148",
+          "requirement_ids": [
+            "R-53",
+            "R-54"
+          ],
+          "related_quotes": [
+            "* **Content-Type:** `application/json` .",
+            "Тело не используется."
+          ],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "consistent",
+          "severity": "minor",
+          "explanation": "Типы данных полей amount и enabled различаются в запросе (integer) и ответе (string), что усложняет обработку на стороне клиента.",
+          "fix": "Установить единый тип данных (integer) для полей amount и enabled в запросе и ответе.",
+          "quote": "| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |",
+          "location": "Query-параметры, строка 143",
+          "requirement_ids": [
+            "R-51",
+            "R-58"
+          ],
+          "related_quotes": [
+            "| `amount` | integer | 32 bit | Да | 1 000–1 000 000 | Порог в тенге | `limit_kzt` |",
+            "| `amount` | string | При успехе | Порог в тенге | `limit_kzt` |"
+          ],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "incomplete": [
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указан протокол взаимодействия и перечень передаваемых данных (чтение или запись настроек).",
+          "fix": "Указать, что мобильное приложение взаимодействует с сервисом настроек через REST API для получения и обновления параметров порога.",
+          "quote": "Мобильное приложение → сервис настроек.",
+          "location": "Архитектура решения, строка 26",
+          "requirement_ids": [
+            "R-02"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не описан механизм передачи событий между системами (очереди, API) и условия инициации push.",
+          "fix": "Описать поток данных: событие транзакции из процессинга поступает в сервис учета, который при достижении лимита вызывает сервис push.",
+          "quote": "Карточный процессинг → учёт расходов → сервис push.",
+          "location": "Архитектура решения, строка 26",
+          "requirement_ids": [
+            "R-03"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не указана точка входа в процесс навигации.",
+          "fix": "Указать полный путь, начиная с главного экрана приложения.",
+          "quote": "Карты → Расходы → Уведомления.",
+          "location": "Дизайн процесса UI, строка 29",
+          "requirement_ids": [
+            "R-04"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не определен текст сообщения об ошибке и условия его отображения.",
+          "fix": "Указать текст ошибки, например: 'Введите сумму от 1 000 до 1 000 000'.",
+          "quote": "При ошибке ввода сообщение появляется под полем.",
+          "location": "Дизайн процесса UI, строка 29",
+          "requirement_ids": [
+            "R-06"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано событие-триггер, инициирующее процесс, и входные данные.",
+          "fix": "Уточнить: 'Процесс начинается при получении уведомления об успешной авторизации покупки от карточного процессинга'.",
+          "quote": "Проведение покупки",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-07"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указаны правила агрегации: период (календарный месяц) и типы учитываемых операций.",
+          "fix": "Уточнить: 'Сервис производит пересчет накопленной суммы покупок в тенге за текущий календарный месяц'.",
+          "quote": "пересчёт расходов",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-08"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано условие проверки (сравнение с лимитом) и проверка статуса включения уведомлений.",
+          "fix": "Уточнить: 'Система проверяет, превышает ли новая сумма расходов установленный порог, при условии, что уведомления включены'.",
+          "quote": "проверка порога",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-09"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано содержание push-уведомления и ограничение на количество отправок в месяц.",
+          "fix": "Указать: 'При первом достижении порога в календарном месяце отправить push-уведомление с маскированным номером карты и суммой'.",
+          "quote": "при достижении отправка push",
+          "location": "BPMN схема процесса, строка 34",
+          "requirement_ids": [
+            "R-10"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано значение порога, которое должно быть установлено в системе по умолчанию, пока пользователь его не изменил.",
+          "fix": "Указать значение порога по умолчанию (например, 0 или минимально допустимое 1000).",
+          "quote": "По умолчанию уведомление выключено.",
+          "location": "Функциональные требования, строка 37",
+          "requirement_ids": [
+            "R-13"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не описано поведение системы, если возврат происходит в следующем месяце: должен ли пересчитываться статус отправки push за прошлый месяц.",
+          "fix": "Уточнить, влияет ли возврат на возможность повторной отправки push в прошлом месяце.",
+          "quote": "Возврат уменьшает расходы месяца исходной покупки.",
+          "location": "Функциональные требования, строка 38",
+          "requirement_ids": [
+            "R-16"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Список исключений может быть неполным (например, не указаны комиссии, корректировки, налоги).",
+          "fix": "Дополнить список или указать, что исключаются все типы операций, кроме «Покупка».",
+          "quote": "Переводы и снятие наличных исключаются.",
+          "location": "Функциональные требования, строка 38",
+          "requirement_ids": [
+            "R-17"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не определено поведение, если в момент изменения порога текущая сумма расходов уже выше или равна новому порогу.",
+          "fix": "Указать, отправляется ли push немедленно или при следующей покупке.",
+          "quote": "Если она ниже нового порога, следующее достижение вызывает push независимо от истории предыдущей настройки.",
+          "location": "Функциональные требования, строка 40",
+          "requirement_ids": [
+            "R-21"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "В описании шага диаграммы не указаны передаваемые атрибуты (ID карты, сумма, дата).",
+          "fix": "Указать состав передаваемых данных.",
+          "quote": "Процессинг → сервис расходов: проведена покупка.",
+          "location": "Sequence Diagram, строка 43",
+          "requirement_ids": [
+            "R-22"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не указано поведение, если настройки для карты отсутствуют (первая покупка).",
+          "fix": "Уточнить, что возвращается значение по умолчанию.",
+          "quote": "Сервис расходов → настройки: получить порог карты.",
+          "location": "Sequence Diagram, строка 43",
+          "requirement_ids": [
+            "R-23"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Для отправки push недостаточно номера карты и суммы, необходим идентификатор клиента или токен устройства.",
+          "fix": "Добавить идентификатор клиента в состав передаваемых данных.",
+          "quote": "Сервис расходов → push: передать последние четыре цифры карты и сумму при достижении порога.",
+          "location": "Sequence Diagram, строка 43",
+          "requirement_ids": [
+            "R-24"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Не указан процентиль времени доставки (например, 95-й или 99-й), что делает требование неполным для высоконагруженных систем.",
+          "fix": "Добавить процентиль (например, 95-й процентиль).",
+          "quote": "в течение минуты",
+          "location": "Нефункциональные требования, строка 46",
+          "requirement_ids": [
+            "R-25"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Дочерний документ (Часть B) не содержит описания метода для чтения настроек, только для сохранения (saveLimit).",
+          "fix": "Добавить описание метода чтения (например, getLimit) в Часть B.",
+          "quote": "через дочерний документ «Уведомление о расходах по карте — REST API»",
+          "location": "Требования к интеграции, строка 52",
+          "requirement_ids": [
+            "R-27"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано, как система должна идентифицировать «одно и то же» событие (отсутствует ссылка на уникальный ID транзакции).",
+          "fix": "Указать использование Transaction ID для проверки дубликатов.",
+          "quote": "Повторная доставка одного события",
+          "location": "Требования к интеграции, строка 52",
+          "requirement_ids": [
+            "R-28"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+          "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+          "quote": "1. Проверить пользовательскую сессию.",
+          "location": "Логика работы метода, строка 117",
+          "requirement_ids": [
+            "R-40"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+          "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+          "quote": "2. Проверить принадлежность карты клиенту.",
+          "location": "Логика работы метода, строка 118",
+          "requirement_ids": [
+            "R-41"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указано поведение системы в случае отрицательного результата проверки (негативный сценарий).",
+          "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+          "quote": "3. Проверить сумму и переключатель.",
+          "location": "Логика работы метода, строка 119",
+          "requirement_ids": [
+            "R-42"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указаны сами значения границ в тексте требования.",
+          "fix": "Указать диапазон: от 1 000 до 1 000 000 тенге.",
+          "quote": "обе границы включены",
+          "location": "Особые правила, строка 124",
+          "requirement_ids": [
+            "R-45"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не определены условия, при которых возвращается код 201. В разделе «Статусы» описание для 201 отсутствует.",
+          "fix": "Уточнить условия возврата 201 или оставить только 200.",
+          "quote": "Если результат 200 или 201 — успешный.",
+          "location": "Ответ, строка 151",
+          "requirement_ids": [
+            "R-55"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "В таблице параметров ответа отсутствует колонка «Mandatory» (Обязательность), которая есть в таблице запроса.",
+          "fix": "Добавить колонку «Mandatory» в таблицу описания ответа.",
+          "quote": "| `result` | string | OK / ERROR | Исход сохранения | — |",
+          "location": "Ответ, строка 155",
+          "requirement_ids": [
+            "R-57"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указана обязательность поля в таблице. Тип данных (string) противоречит типу в запросе (integer, R-51).",
+          "fix": "Добавить колонку Mandatory и привести типы данных к единообразию (integer).",
+          "quote": "| `amount` | string | При успехе | Порог в тенге | `limit_kzt` |",
+          "location": "Ответ, строка 156",
+          "requirement_ids": [
+            "R-58"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "В таблице ответа не указана обязательность поля.",
+          "fix": "Добавить колонку Mandatory и указать условия присутствия поля.",
+          "quote": "| `enabled` | string | «0» или «1» | Признак включения | `enabled` |",
+          "location": "Ответ, строка 157",
+          "requirement_ids": [
+            "R-59"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Не указана обязательность поля в таблице параметров.",
+          "fix": "Добавить колонку Mandatory и указать, что поле обязательно при ошибке.",
+          "quote": "| `message` | string | При ошибке | Описание ошибки | — |",
+          "location": "Ответ, строка 158",
+          "requirement_ids": [
+            "R-60"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "minor",
+          "explanation": "Фраза «параметры запроса заполнены неверно» не содержит ссылок на конкретные правила валидации (типы, диапазоны, обязательность), описанные в таблице параметров.",
+          "fix": "Уточнить: «400. Ответ в случае, если параметры cardId, amount или enabled не соответствуют формату или ограничениям, указанным в разделе Параметры запроса».",
+          "quote": "**400.** Ответ в случае, если параметры запроса заполнены неверно.",
+          "location": "Статусы, строка 163",
+          "requirement_ids": [
+            "R-62"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "critical",
+          "explanation": "Раздел содержит незаполненные элементы шаблона (указание заполнить позднее); из-за этого спецификация неполна.",
+          "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+          "quote": "заполняются тестировщиками",
+          "location": "Тестирование требований, строка 57",
+          "requirement_ids": [],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "critical",
+          "explanation": "Раздел содержит незаполненные элементы шаблона (явно незаполненное поле, неотмеченный выбор); из-за этого спецификация неполна.",
+          "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+          "quote": "Документ (версия/дата) в источнике не заполнен. Пункты чек-листа приведены как в шаблоне, отметки не проставлены.",
+          "location": "Ревью требований, строка 68",
+          "requirement_ids": [],
+          "related_quotes": [
+            "| Техническое требование зафиксировано и покрывает бизнес-требование | Да / Нет | Да / Нет | |",
+            "| Функциональная спецификация имеет структурированное описание (по стандарту, шаблону) | Да / Нет | Да / Нет | |",
+            "| Sequence-диаграммы, предусмотрены взаимодействия систем, компонентов и решений | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+            "| Требование покрывает спецификацию UX/UI дизайна | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+            "| Реализация задачи/проекта предусматривает схему отката решений | Да / Нет / Не требуется | Да / Нет / Не требуется | При невозможности отката — варианты скрытия функционала |",
+            "| Требование может быть протестировано | Да / Нет | Да / Нет | |",
+            "| Требование предусматривает модель данных или поток, содержит описание | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+            "| Требование не имеет противоречий или явных показателей операционных рисков | Да / Нет | Да / Нет | |",
+            "| Требование содержит архитектуру и согласовано с архитекторами | Да / Нет / Не требуется | Да / Нет / Не требуется | Для архитектуры — чек-лист |",
+            "| Все изменения, влияющие на иные продукты/системы в требовании, согласованы с ответственными лицами | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+            "| Структура требований не несёт изменений и рисков информационной безопасности | Да / Нет | Да / Нет | По информационной безопасности — чек-лист |",
+            "| В требовании присутствует схема полного бизнес-процесса и часть реализуемой доработки | Да / Нет | Да / Нет | |",
+            "| Требование носит интеграционный характер и имеет четкую постановку реализации интеграционного взаимодействия | Да / Нет / Не требуется | Да / Нет / Не требуется | |",
+            "| Поддерживается версионность документа / зафиксирована | Да / Нет | Да / Нет | |"
+          ],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "critical",
+          "explanation": "Раздел содержит незаполненные элементы шаблона (пустая строка таблицы); из-за этого спецификация неполна.",
+          "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+          "quote": "| | | |",
+          "location": "Блок согласующих, строка 91",
+          "requirement_ids": [],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "complete",
+          "severity": "major",
+          "explanation": "Раздел содержит незаполненные элементы шаблона (пустое значение таблицы); из-за этого спецификация неполна.",
+          "fix": "Заменить плейсхолдеры конкретными значениями либо явно обосновать неприменимость полей.",
+          "quote": "| **Swagger** | — |",
+          "location": "Общие параметры, строка 110",
+          "requirement_ids": [],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        }
+      ],
+      "other": [
+        {
+          "criterion": "correct",
+          "severity": "critical",
+          "explanation": "В разделе «Логика работы метода» (Часть B) описано именно сохранение (замена настройки), а не чтение.",
+          "fix": "Удалить упоминание чтения порога из описания метода сохранения.",
+          "quote": "Функциональные требования: чтение порога",
+          "location": "Общие параметры, строка 103",
+          "requirement_ids": [
+            "R-34"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "appropriate",
+          "severity": "critical",
+          "explanation": "Использование метода GET для изменения состояния сервера (сохранения порога) нарушает принципы REST (идемпотентность и безопасность GET).",
+          "fix": "Изменить тип метода на POST или PUT.",
+          "quote": "| **REST type** | GET |",
+          "location": "Общие параметры, строка 104",
+          "requirement_ids": [
+            "R-35"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "correct",
+          "severity": "critical",
+          "explanation": "Тип запроса GET противоречит логике метода «Заменить настройку» и примеру CURL, где передаются данные для изменения.",
+          "fix": "Указать REST type: POST.",
+          "quote": "| **REST type** | GET |",
+          "location": "Общие параметры, строка 104",
+          "requirement_ids": [
+            "R-35"
+          ],
+          "related_quotes": [],
+          "quote_verified": true,
+          "confidence": null,
+          "expert_confirmation": false
+        },
+        {
+          "criterion": "conforming",
+          "severity": "critical",
+          "explanation": "Использование метода GET для операции сохранения (изменения состояния) нарушает стандарты REST и создает риски безопасности (параметры логируются в URL).",
+          "fix": "Изменить метод на POST или PUT, передавать параметры в теле запроса.",
+          "quote": "| **REST type** | GET |",
+          "location": "Общие параметры, строка 104",
+          "requirement_ids": [
+            "R-35"
+          ],
+          "related_quotes": [
+            "| **Request URL** | Dev: `/alerts/saveLimit` . Prod: — |"
+          ],
+          "quote_verified": true,
+          "confidence": "high",
+          "expert_confirmation": true
+        }
+      ]
+    },
+    "decision": "Нет",
+    "justification": "Выявлено 72 дефектов: critical — 8, major — 40, minor — 24. Есть блокирующие нарушения.",
+    "prioritized_fixes": [
+      "Изменить REST type на POST или PUT, обновить пример CURL и URL (убрать save из пути).",
+      "Изменить метод на POST или PUT, передавать параметры в теле запроса.",
+      "Изменить тип метода на POST или PUT.",
+      "Удалить упоминание чтения порога из описания метода сохранения.",
+      "Указать REST type: POST.",
+      "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+      "Добавить описание ошибки и возвращаемый HTTP-статус.",
+      "Перенести данный пример в раздел описания статуса 400.",
+      "Скорректировать ожидаемый результат в критерии приемки: покупка от 31 января должна увеличивать январский счетчик.",
+      "Добавить идентификатор клиента в состав передаваемых данных.",
+      "Добавить исключение для случая изменения настроек.",
+      "Добавить колонку Mandatory и привести типы данных к единообразию (integer).",
+      "Добавить колонку Mandatory и указать условия присутствия поля.",
+      "Добавить колонку Mandatory и указать, что поле обязательно при ошибке.",
+      "Добавить описание метода чтения (например, getLimit) в Часть B.",
+      "Заменить на «в течение 60 секунд».",
+      "Заменить на технически точный статус операции (например, «в статусе Исполнена»).",
+      "Изменить ожидаемый результат на рост январского счетчика.",
+      "Использовать для ошибок валидации статус 400 Bad Request.",
+      "Использовать единую единицу измерения (тиыны) для всех денежных полей.",
+      "Использовать формулировку «не изменяет состояние системы».",
+      "Описать поток данных: событие транзакции из процессинга поступает в сервис учета, который при достижении лимита вызывает сервис push.",
+      "Перенести cardId и amount в Request Body.",
+      "Привести к единому стандарту: возвращать HTTP 400 при ошибке валидации параметров.",
+      "Указать диапазон: от 1 000 до 1 000 000 тенге.",
+      "Указать значение порога по умолчанию (например, 0 или минимально допустимое 1000).",
+      "Указать использование Transaction ID для проверки дубликатов.",
+      "Указать конкретный диапазон кодов (например, 400-599) или перечислить все поддерживаемые коды.",
+      "Указать необходимость наличия документации по откату и настроенного механизма переключения функционала.",
+      "Указать одну цель (сохранение порога).",
+      "Указать состав передаваемых данных.",
+      "Указать, отправляется ли push немедленно или при следующей покупке.",
+      "Указать, что мобильное приложение взаимодействует с сервисом настроек через REST API для получения и обновления параметров порога.",
+      "Указать, что при ошибке валидации изменения в БД не вносятся.",
+      "Указать: 'При первом достижении порога в календарном месяце отправить push-уведомление с маскированным номером карты и суммой'.",
+      "Уточнить технический способ реализации (например, использование Feature Toggle и скриптов миграции БД).",
+      "Уточнить тип события.",
+      "Уточнить условия возврата 201 или оставить только 200.",
+      "Уточнить, влияет ли возврат на возможность повторной отправки push в прошлом месяце.",
+      "Уточнить, используется ли дата авторизации или дата проводки (settlement).",
+      "Уточнить: 'Процесс начинается при получении уведомления об успешной авторизации покупки от карточного процессинга'.",
+      "Уточнить: 'Сервис производит пересчет накопленной суммы покупок в тенге за текущий календарный месяц'.",
+      "Уточнить: 'Система проверяет, превышает ли новая сумма расходов установленный порог, при условии, что уведомления включены'.",
+      "Заменить плейсхолдеры конкретными значениями либо явно обосновать неприменимость полей.",
+      "Добавить поле «result» в JSON-ответ.",
+      "Вынести описание логики 404 в отдельный заголовок или раздел.",
+      "Удалить заголовок Content-Type из требований к запросу, так как тело отсутствует.",
+      "Установить единый тип данных (integer) для полей amount и enabled в запросе и ответе.",
+      "Добавить колонку «Mandatory» в таблицу описания ответа.",
+      "Добавить определение активной карты в глоссарий или раздел данных.",
+      "Добавить процентиль (например, 95-й процентиль).",
+      "Дополнить список или указать, что исключаются все типы операций, кроме «Покупка».",
+      "Исправить описание кода 200 на «OK».",
+      "Описать путь пользователя: 'В разделе Карты выбрать карту, перейти в подраздел Расходы и выбрать пункт Уведомления'.",
+      "Перенести в протокол ревью или переформулировать в требование соответствия архитектуре.",
+      "Разделить на два атомарных требования.",
+      "Разделить на два требования: для получения настроек и для их изменения.",
+      "Разделить на два требования: одно для чтения, другое для сохранения.",
+      "Разделить на логические группы (данные операции, настройки клиента).",
+      "Удалить или переформулировать в требование безопасности продукта.",
+      "Удалить требование к Content-Type для входящего запроса.",
+      "Указать полный путь, начиная с главного экрана приложения.",
+      "Указать текст ошибки, например: 'Введите сумму от 1 000 до 1 000 000'.",
+      "Уточнить, что возвращается значение по умолчанию.",
+      "Уточнить: «400. Ответ в случае, если параметры cardId, amount или enabled не соответствуют формату или ограничениям, указанным в разделе Параметры запроса»."
+    ],
+    "top_fixes": [
+      {
+        "fix": "Изменить REST type на POST или PUT, обновить пример CURL и URL (убрать save из пути).",
+        "severity": "critical",
+        "requirement_ids": [
+          "R-34",
+          "R-35"
+        ]
+      },
+      {
+        "fix": "Изменить метод на POST или PUT, передавать параметры в теле запроса.",
+        "severity": "critical",
+        "requirement_ids": [
+          "R-35"
+        ]
+      },
+      {
+        "fix": "Изменить тип метода на POST или PUT.",
+        "severity": "critical",
+        "requirement_ids": [
+          "R-35"
+        ]
+      },
+      {
+        "fix": "Удалить упоминание чтения порога из описания метода сохранения.",
+        "severity": "critical",
+        "requirement_ids": [
+          "R-34"
+        ]
+      },
+      {
+        "fix": "Указать REST type: POST.",
+        "severity": "critical",
+        "requirement_ids": [
+          "R-35"
+        ]
+      },
+      {
+        "fix": "Заполнить обязательную часть документа конкретными проверяемыми данными и убрать плейсхолдеры.",
+        "severity": "critical",
+        "requirement_ids": []
+      },
+      {
+        "fix": "Добавить описание ошибки и возвращаемый HTTP-статус.",
+        "severity": "major",
+        "requirement_ids": [
+          "R-40",
+          "R-41",
+          "R-42"
+        ]
+      }
+    ]
+  },
+  "context": {
+    "used": false,
+    "extracted": {},
+    "findings": [],
+    "traceability_matrix": [
+      {
+        "goal": "Дать клиенту возможность узнать о достижении личного бюджета",
+        "goal_quote": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+        "requirement_ids": [
+          "R-12",
+          "R-18",
+          "R-19"
+        ],
+        "acceptance_ids": [
+          "R-29"
+        ],
+        "api_ids": [
+          "R-34"
+        ],
+        "status": "inconsistent"
+      },
+      {
+        "goal": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки",
+        "goal_quote": "Дать клиенту возможность узнать о достижении личного бюджета в момент покупки.",
+        "requirement_ids": [
+          "R-12",
+          "R-18",
+          "R-19"
+        ],
+        "acceptance_ids": [
+          "R-29"
+        ],
+        "api_ids": [
+          "R-34",
+          "R-51"
+        ],
+        "status": "partial"
+      },
+      {
+        "goal": "Учет специфики времени и типов операций",
+        "goal_quote": "Месяц определяется по дате совершения покупки в Алматы.",
+        "requirement_ids": [
+          "R-14",
+          "R-15",
+          "R-16",
+          "R-17"
+        ],
+        "acceptance_ids": [
+          "R-30",
+          "R-31"
+        ],
+        "api_ids": [],
+        "status": "partial"
+      },
+      {
+        "goal": "Управление настройками через мобильное приложение",
+        "goal_quote": "Мобильное приложение → сервис настроек.",
+        "requirement_ids": [
+          "R-20",
+          "R-21"
+        ],
+        "acceptance_ids": [],
+        "api_ids": [
+          "R-38",
+          "R-39",
+          "R-43"
+        ],
+        "status": "partial"
+      }
+    ]
+  },
+  "test_cases": [],
+  "diff": {}
+}
