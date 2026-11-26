@@ -6,7 +6,10 @@ services:
     # Запуск от пользователя хоста, чтобы .cache/ оставался доступным на запись.
     user: "${APP_UID:-1000}:${APP_GID:-1000}"
     env_file: .env
+    environment:
+      WEB_DATA_DIR: /app/data/web
     ports:
       - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8000}:8000"
     volumes:
       - ./.cache:/app/.cache
+      - ./data:/app/data

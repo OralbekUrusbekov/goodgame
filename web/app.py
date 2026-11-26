@@ -218,6 +218,8 @@ def cancel_run(run_id: str):
 @app.post("/api/runs/{run_id}/retry", status_code=201)
 def retry_run(run_id: str):
     old = _run(run_id)
+    if old.upload_id not in runs.uploads:
+        raise HTTPException(409, "Исходный файл недоступен — загрузите документ заново")
     body = RunIn(upload_id=old.upload_id, title=old.title, work_type=old.options.get("work_type", ""),
                  criteria=old.options.get("criteria", []),
                  gitlab_project_id=(old.gitlab_project or {}).get("id"), ref=(old.gitlab_project or {}).get("ref"),

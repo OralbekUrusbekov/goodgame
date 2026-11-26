@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import logging
 import os
 import shutil
@@ -95,7 +96,8 @@ class Run:
         s = (self.result or {}).get("summary", {})
         v = (self.result or {}).get("verdict", {})
         return {
-            "id": self.id, "title": self.title, "file_name": self.file_name, "options": self.options,
+            "id": self.id, "upload_id": self.upload_id, "title": self.title,
+            "file_name": self.file_name, "options": self.options,
             "gitlab": self.gitlab_project, "created_at": self.created_at, "finished_at": self.finished_at,
             "status": self.status, "stage": self.stage, "stage_info": self.stage_info, "progress": self.progress,
             "stages_done": self.stages_done, "warnings": self.warnings, "error": self.error, "mode": self.mode,
@@ -105,11 +107,88 @@ class Run:
 
 
 class RunStore:
-    def __init__(self):
+    TERMINAL_STATUSES = {"done", "error", "cancelled"}
+
+    def __init__(self, data_dir: str | Path | None = None):
         self.uploads: dict[str, Upload] = {}
         self.runs: dict[str, Run] = {}
-        self._pool = ThreadPoolExecutor(max_workers=int(os.getenv("WEB_WORKERS", "2")), thread_name_prefix="run")
         self._lock = threading.Lock()
+        self._deleted: set[str] = set()
+        configured_dir = data_dir if data_dir is not None else os.getenv("WEB_DATA_DIR", "./data/web")
+        self.data_dir = Path(configured_dir)
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self._load_runs()
+        self._pool = ThreadPoolExecutor(max_workers=int(os.getenv("WEB_WORKERS", "2")), thread_name_prefix="run")
+
+    def close(self) -> None:
+        """Освободить рабочие потоки (в основном полезно изолированным тестам)."""
+        self._pool.shutdown(wait=True)
+
+    def _run_path(self, run_id: str) -> Path:
+        return self.data_dir / f"{run_id}.json"
+
+    @staticmethod
+    def _from_snapshot(data: dict) -> Run:
+        return Run(
+            id=str(data["id"]),
+            upload_id=str(data.get("upload_id") or ""),
+            title=str(data.get("title") or ""),
+            file_name=str(data.get("file_name") or "document"),
+            options=dict(data.get("options") or {}),
+            gitlab_project=data.get("gitlab"),
+            created_at=float(data.get("created_at") or time.time()),
+            status=str(data.get("status") or "error"),
+            stage=str(data.get("stage") or "error"),
+            stage_info=dict(data.get("stage_info") or {}),
+            progress=int(data.get("progress") or 0),
+            stages_done=list(data.get("stages_done") or []),
+            warnings=list(data.get("warnings") or []),
+            error=data.get("error"),
+            result=data.get("result"),
+            report_md=data.get("report_md"),
+            finished_at=data.get("finished_at"),
+            mode=str(data.get("mode") or "demo"),
+        )
+
+    def _load_runs(self) -> None:
+        interrupted: list[Run] = []
+        for path in sorted(self.data_dir.glob("*.json")):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                run = self._from_snapshot(data)
+                if run.id != path.stem:
+                    raise ValueError("ID прогона не совпадает с именем файла")
+            except Exception:  # noqa: BLE001
+                log.warning("Не удалось восстановить прогон из %s", path, exc_info=True)
+                continue
+            if run.status in {"queued", "running"}:
+                run.status = "error"
+                run.stage = "error"
+                run.finished_at = time.time()
+                run.error = {
+                    "stage": str(data.get("stage") or run.stage),
+                    "code": "server_restarted",
+                    "message": "прогон прерван перезапуском сервера",
+                    "hint": "Загрузите исходный документ заново и повторите проверку.",
+                }
+                interrupted.append(run)
+            self.runs[run.id] = run
+        for run in interrupted:
+            self.persist(run)
+
+    def persist(self, run: Run) -> None:
+        """Атомарно сохранить текущее состояние прогона в одном JSON-снимке."""
+        payload = {**run.public(), "result": run.result, "report_md": run.report_md}
+        path = self._run_path(run.id)
+        temporary = path.with_suffix(".json.tmp")
+        with self._lock:
+            if run.id in self._deleted:
+                return
+            try:
+                temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+                temporary.replace(path)
+            finally:
+                temporary.unlink(missing_ok=True)
 
     # --- загрузки
     def save_upload(self, file_name: str, data: bytes, preview: dict) -> Upload:
@@ -143,6 +222,7 @@ class RunStore:
                   file_name=up.file_name, options=options, gitlab_project=gitlab_project)
         with self._lock:
             self.runs[run.id] = run
+        self.persist(run)
         self._pool.submit(self._execute, run, up.path, gitlab_ctx_factory)
         return run
 
@@ -158,12 +238,16 @@ class RunStore:
             run.cancel_event.set()
             if run.status == "queued":
                 run.status, run.stage, run.finished_at = "cancelled", "cancelled", time.time()
+                self.persist(run)
         return run
 
     def delete(self, run_id: str) -> None:
-        run = self.runs.pop(run_id, None)
+        with self._lock:
+            run = self.runs.pop(run_id, None)
+            self._deleted.add(run_id)
         if run:
             run.cancel_event.set()
+        self._run_path(run_id).unlink(missing_ok=True)
 
     # --- выполнение
     def _on_progress(self, run: Run, stage: str, info: dict | None = None) -> None:
@@ -193,6 +277,7 @@ class RunStore:
         if run.cancel_event.is_set():
             return
         run.status, run.stage = "running", "reading"
+        self.persist(run)
         try:
             fn, run.mode = load_pipeline()
             gitlab_ctx = None
@@ -230,6 +315,8 @@ class RunStore:
             run.status = "error"
         finally:
             run.finished_at = time.time()
+            if run.status in self.TERMINAL_STATUSES:
+                self.persist(run)
 
 
 def _agent_report(result: dict) -> str | None:

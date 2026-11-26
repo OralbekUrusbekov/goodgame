@@ -7,4 +7,5 @@ venv/
 .claude/
 .cache/
 runs/
+data/
 .pytest_cache/
