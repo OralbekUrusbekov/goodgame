@@ -19,6 +19,7 @@ const STEPS = [
 ];
 const STAGE_ORDER = ['queued', 'reading', 'splitting', 'checking_requirements', 'checking_set', 'checking_gitlab', 'verifying_quotes', 'summary', 'done'];
 const WORK_TYPES = ['Новый функционал', 'Доработка', 'Интеграция', 'Исправление ошибки'];
+const DRAFT_KEY = 'bcc-spec-upload-draft-v1';
 
 function h(tag, props, ...kids) {
   const el = document.createElement(tag);
@@ -105,7 +106,7 @@ async function copyText(text) {
 const state = {
   meta: null,
   intake: { phase: 'empty', upload: null, error: null, file: null, abort: null,
-    previous: null, form: { title: '', work_type: WORK_TYPES[0], project: '', ref: '', scopes: ['api', 'openapi', 'db'], criteria: null,
+    previous: null, draftNotice: '', form: { title: '', work_type: WORK_TYPES[0], project: '', ref: '', scopes: ['api', 'openapi', 'db'], criteria: null,
       no_cache: false, model: '' } },
   projects: [],
   branches: {},
@@ -113,6 +114,25 @@ const state = {
 };
 function every(ms, fn) { const id = setInterval(fn, ms); state.timers.add(id); return id; }
 function clearTimers() { state.timers.forEach(clearInterval); state.timers.clear(); }
+function saveDraft() {
+  const it = state.intake;
+  if (it.phase !== 'parsed' || !it.upload) return;
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ upload_id: it.upload.upload_id, form: it.form })); } catch { /* storage может быть запрещён */ }
+}
+function clearDraft() { try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* storage может быть запрещён */ } }
+async function restoreDraft() {
+  let draft;
+  try { draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); } catch { clearDraft(); return; }
+  if (!draft?.upload_id || state.intake.phase !== 'empty') return;
+  try {
+    state.intake.upload = await api(`api/documents/${encodeURIComponent(draft.upload_id)}`);
+    state.intake.file = { name: state.intake.upload.file_name, size: state.intake.upload.size };
+    state.intake.form = { ...state.intake.form, ...(draft.form || {}) };
+    state.intake.phase = 'parsed';
+  } catch {
+    clearDraft(); state.intake.draftNotice = 'Черновик загрузки истёк. Загрузите файл заново.';
+  }
+}
 
 async function loadMeta() {
   try {
@@ -129,6 +149,7 @@ async function loadMeta() {
     document.getElementById('foot-meta').textContent =
       `Модель: ${m.model || '—'} · версия агента: ${m.agent_version || (m.mode === 'agent' ? '—' : 'демо')} · веб ${m.web_version}`;
     if (!state.intake.form.criteria) state.intake.form.criteria = m.groups.map((g) => g.id);
+    await restoreDraft();
   } catch (e) {
     state.meta = { groups: [], criteria: [], scopes: [], max_upload_mb: 20, mode: 'unknown' };
   }
@@ -171,6 +192,7 @@ const fileInput = h('input', { type: 'file', accept: '.pdf,.docx,.md,.markdown,.
 document.body.appendChild(fileInput);
 fileInput.addEventListener('change', () => { if (fileInput.files[0]) acceptFile(fileInput.files[0]); fileInput.value = ''; });
 const pickFile = () => fileInput.click();
+const formatText = () => (state.meta?.format_labels || ['PDF', 'DOCX', 'Markdown', 'TXT']).join(', ');
 
 const ERR_TEXT = {
   format: { color: 'var(--crit)', code: 'ФАЙЛ · ФОРМАТ' },
@@ -188,7 +210,7 @@ async function acceptFile(file) {
   const maxMb = state.meta?.max_upload_mb || 20;
   it.file = { name: file.name, size: file.size };
   if (!/\.(pdf|docx|md|markdown|txt)$/i.test(file.name)) {
-    it.phase = 'error'; it.error = { code: 'format', message: 'Этот формат агент не читает', hint: 'Поддерживаются PDF с текстовым слоем, DOCX и Markdown.' };
+    it.phase = 'error'; it.error = { code: 'format', message: 'Этот формат агент не читает', hint: `Поддерживаются ${formatText()}.` };
     return viewIntake();
   }
   if (file.size > maxMb * 1048576) {
@@ -203,6 +225,7 @@ async function acceptFile(file) {
     const up = await api('api/documents', { method: 'POST', body: fd, signal: it.abort.signal });
     it.upload = up; it.phase = 'parsed'; it.previous = null;
     it.form.title = up.preview.title || file.name.replace(/\.[^.]+$/, '');
+    saveDraft();
   } catch (e) {
     if (e.name === 'AbortError') {
       if (it.previous) { Object.assign(it, it.previous); it.previous = null; }
@@ -216,6 +239,7 @@ async function acceptFile(file) {
 async function viewIntake() {
   setTitle('');
   const it = state.intake;
+  if (it.phase === 'parsed') saveDraft();
   if (!state.projects.length) await loadProjects();
   const stepLabel = it.phase === 'parsed' ? 'Шаг 2 из 3 · настройки' : it.phase === 'error' ? 'Файл не принят' : 'Шаг 1 из 3 · документ';
 
@@ -223,7 +247,9 @@ async function viewIntake() {
     h('span', { class: 'greenbar' }),
     h('span', { class: 'eyebrow' }, stepLabel),
     h('h1', { class: 'display' }, 'Проверка ТЗ до разработки'),
+    it.phase === 'empty' || it.phase === 'drag' ? h('button', { type: 'button', class: 'btn mobile-upload', onclick: pickFile }, 'Загрузить ТЗ') : null,
     h('p', { class: 'lead' }, 'Положите документ на лист. Агент прочитает его как придирчивый рецензент и оставит замечания на полях.'),
+    it.draftNotice ? h('div', { class: 'note' }, it.draftNotice) : null,
     h('ol', { class: 'numlist' },
       [['01', 'Каждое требование — по ISO/IEC/IEEE 29148 и IEEE 830'], ['02', 'Противоречия и пропуски между разделами документа'], ['03', 'Расхождения с кодом проекта в GitLab']]
         .map(([n, t]) => h('li', null, h('span', { class: 'n' }, n), h('span', null, t)))),
@@ -246,7 +272,7 @@ function dropSheet() {
       h('span', { class: 'rules' }, h('span'), h('span'), h('span'), h('span')),
       h('span', { style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '14px', marginTop: '64px' } },
         h('span', { class: 'big' }, it.phase === 'drag' ? 'Отпускайте.' : ['Положите ТЗ', h('br'), 'на этот лист']),
-        h('span', { class: 'muted' }, `Перетащите PDF, DOCX, Markdown или TXT до ${state.meta?.max_upload_mb || 20} МБ — или нажмите, чтобы выбрать файл`)),
+        h('span', { class: 'muted' }, `Перетащите ${formatText()} до ${state.meta?.max_upload_mb || 20} МБ — или нажмите, чтобы выбрать файл`)),
       h('span', { class: 'rules', style: { marginTop: '64px' } }, h('span'), h('span'), h('span')),
       it.phase === 'drag' ? null : h('span', { class: 'arrow' }, svg(ICON_UP))));
   let depth = 0;
@@ -309,7 +335,7 @@ function errorSheet() {
         if (it.previous) { Object.assign(it, it.previous); it.previous = null; it.error = null; } else { it.phase = 'empty'; it.error = null; }
         viewIntake();
       } }, 'Отмена')),
-    h('span', { class: 'small muted' }, 'Поддерживаются: PDF с текстовым слоем, DOCX, Markdown, TXT. Пароли и ключи в сервис не вводятся.'));
+    h('span', { class: 'small muted' }, `Поддерживаются: ${formatText()}. Пароли и ключи в сервис не вводятся.`));
 }
 
 function settingsBlock() {
@@ -345,13 +371,14 @@ function settingsBlock() {
     const more = h('details', { class: 'more' }, h('summary', null, 'Название, тип работы, что сверять и критерии'),
       h('div', { class: 'settings', style: { paddingTop: '12px' } },
         h('div', { class: 'grid2' },
-          h('label', { class: 'field' }, 'Название проверки', h('input', { type: 'text', value: f.title, maxlength: '200', oninput: (e) => { f.title = e.target.value; } })),
-          h('label', { class: 'field' }, 'Тип работы', h('select', { onchange: (e) => { f.work_type = e.target.value; } },
+          h('label', { class: 'field' }, 'Название проверки', h('input', { type: 'text', value: f.title, maxlength: '200', oninput: (e) => { f.title = e.target.value; saveDraft(); } })),
+          h('label', { class: 'field' }, 'Тип работы', h('select', { onchange: (e) => { f.work_type = e.target.value; saveDraft(); } },
             WORK_TYPES.map((w) => h('option', { selected: w === f.work_type }, w))))),
         f.project ? h('fieldset', { style: { border: 0, padding: 0, margin: 0 } },
           h('legend', { class: 'small muted', style: { paddingBottom: '8px' } }, 'Что агент читает в коде (только чтение)'),
           h('div', { class: 'checks' }, (state.meta?.scopes || []).map((s) => checkRow(s.label, s.meta, f.scopes.includes(s.id), (on) => {
             f.scopes = on ? [...new Set([...f.scopes, s.id])] : f.scopes.filter((x) => x !== s.id);
+            saveDraft();
           })))) : null,
         h('fieldset', { style: { border: 0, padding: 0, margin: 0 } },
           h('legend', { class: 'small muted', style: { paddingBottom: '8px' } }, 'Критерии'),
@@ -361,10 +388,10 @@ function settingsBlock() {
           })))),
         h('fieldset', { style: { border: 0, padding: 0, margin: 0 } },
           h('legend', { class: 'small muted', style: { paddingBottom: '8px' } }, 'Модель и кэш'),
-          h('label', { class: 'field' }, 'Модель', h('select', { onchange: (e) => { f.model = e.target.value; } },
+          h('label', { class: 'field' }, 'Модель', h('select', { onchange: (e) => { f.model = e.target.value; saveDraft(); } },
             h('option', { value: '', selected: !f.model }, 'по умолчанию'),
             (state.meta?.allowed_models || []).map((model) => h('option', { value: model, selected: f.model === model }, model)))),
-          checkRow('Проверить без кэша', 'Все обращения к модели будут выполнены заново', !!f.no_cache, (on) => { f.no_cache = on; })),
+          checkRow('Проверить без кэша', 'Все обращения к модели будут выполнены заново', !!f.no_cache, (on) => { f.no_cache = on; saveDraft(); })),
       ));
     more.open = !!it.moreOpen;
     more.addEventListener('toggle', () => { it.moreOpen = more.open; });
@@ -383,7 +410,7 @@ function settingsBlock() {
         upload_id: it.upload.upload_id, title: f.title, work_type: f.work_type, criteria: f.criteria,
         gitlab_project_id: f.project || null, ref: f.project ? (f.ref || null) : null, scopes: f.project ? f.scopes : [],
         no_cache: !!f.no_cache, model: f.model || null } });
-      state.intake = { ...state.intake, phase: 'empty', upload: null, file: null, error: null };
+      clearDraft(); state.intake = { ...state.intake, phase: 'empty', upload: null, file: null, error: null };
       location.hash = `#/runs/${r.run_id}`;
     } catch (e) { err.textContent = e.message; start.disabled = false; }
   }
@@ -399,7 +426,7 @@ function checkRow(label, sub, checked, onchange) {
 
 function branchSelect(f) {
   const proj = state.projects.find((p) => p.id === f.project);
-  const sel = h('select', { class: 'inline-select mono', onchange: (e) => { f.ref = e.target.value; } });
+  const sel = h('select', { class: 'inline-select mono', onchange: (e) => { f.ref = e.target.value; saveDraft(); } });
   const fill = (names) => {
     fill(sel, ...names.map((n) => h('option', { value: n, selected: (f.ref || proj.default_branch) === n }, n)));
   };
@@ -416,13 +443,13 @@ async function viewRun(id) {
   let run;
   try { run = await api(`api/runs/${id}`); }
   catch (e) { return render(notFound('Проверка не найдена', 'Проверка удалена или указана неверная ссылка.')); }
-  if (run.status === 'done') return viewResult(run);
+  if (run.status === 'done' || run.status === 'partial') return viewResult(run);
   drawReview(run);
   if (run.status === 'running' || run.status === 'queued') {
     every(800, async () => {
       try {
         const r = await api(`api/runs/${id}`);
-        if (r.status === 'done') { clearTimers(); return viewResult(r); }
+        if (r.status === 'done' || r.status === 'partial') { clearTimers(); return viewResult(r); }
         drawReview(r);
         if (r.status !== 'running' && r.status !== 'queued') clearTimers();
       } catch { /* сеть моргнула — следующий опрос */ }
@@ -458,7 +485,7 @@ function drawReview(run) {
   const found = run.stage_info?.findings_so_far ?? 0;
   const err = run.status === 'error';
   const cancelled = run.status === 'cancelled';
-  const title = err ? 'Ревью прервано' : cancelled ? 'Ревью остановлено' : 'Идёт ревью';
+  const title = err ? 'Ревью прервано' : cancelled ? 'Отменено пользователем' : 'Идёт ревью';
   const text = err ? 'Конвейер не смог завершить проверку. Ниже — что случилось и что можно сделать.'
     : cancelled ? 'Проверку остановили. Можно запустить её заново с теми же настройками.'
       : 'Обычно это занимает 1–3 минуты. Можно закрыть вкладку — отчёт появится в истории.';
@@ -476,7 +503,10 @@ function drawReview(run) {
         h('button', { type: 'button', class: 'btn', onclick: () => retry(run.id) }, 'Запустить заново'),
         h('a', { class: 'btn-ghost', href: '#/' }, 'Новое ТЗ'))
       : h('button', { type: 'button', class: 'btn-ghost', style: { alignSelf: 'flex-start' }, onclick: async (e) => {
-        e.target.disabled = true; try { await api(`api/runs/${run.id}/cancel`, { method: 'POST' }); } catch (x) { toast(x.message); }
+        e.target.disabled = true; e.target.textContent = 'Запрошена остановка…';
+        try { const stopped = await api(`api/runs/${run.id}/cancel`, { method: 'POST' });
+          if (stopped.cancel_outcome === 'completed_before_cancel') toast('Завершилось до отмены');
+        } catch (x) { toast(x.message); }
       } }, 'Остановить ревью'));
 
   const alerts = [];
@@ -493,14 +523,16 @@ function drawReview(run) {
   }
   if (err) {
     const e = run.error || {};
-    const is429 = e.code === 'llm_429';
+    const is429 = e.code === 'quota_exhausted';
     const stepName = (STEPS.find((s) => s.stages.includes(e.stage)) || {}).name || 'одном из этапов';
     alerts.push(h('div', { class: 'alert err', role: 'alert' },
       h('span', { class: 'code' }, is429 ? 'МОДЕЛЬ · 429 · ЛИМИТ ЗАПРОСОВ' : `ОШИБКА · ${e.code || ''}`),
       h('span', { class: 't' }, is429 ? `Модель перестала отвечать: «${stepName}»` : `Сбой на этапе «${stepName}»`),
       h('p', null, e.message || ''),
       e.hint ? h('p', null, e.hint) : null,
-      is429 ? h('p', null, 'Дождитесь времени доступности из сообщения или выберите другую модель в расширенных настройках новой проверки.') : null));
+      is429 ? h('p', null, 'Выберите другую модель в расширенных настройках новой проверки или повторите позже.') : null,
+      e.technical_detail ? h('details', { class: 'more' }, h('summary', null, 'Технические детали'),
+        h('pre', { class: 'small', style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } }, e.technical_detail)) : null));
   }
 
   render(h('div', { class: 'wrap split' }, left,
@@ -546,8 +578,9 @@ async function viewResult(run) {
     const keepScroll = oldDoc ? oldDoc.scrollTop : 0;
     fill(root,
       res.passport.demo ? h('div', { class: 'note' }, h('b', null, 'Демо-режим. '), 'Конвейер агента ещё не подключён: замечания найдены эвристиками без LLM. Формат отчёта и интерфейс — как у настоящего прогона.') : null,
+      run.cancel_outcome === 'completed_before_cancel' ? h('div', { class: 'note green' }, 'Завершилось до отмены.') : null,
       res.partial ? h('div', { class: 'alert', role: 'status' }, h('span', { class: 't' }, 'Частичный отчёт'),
-        h('p', null, `Частичный отчёт: этап ${res.partial_error?.stage || 'неизвестен'} не выполнен (${res.partial_error?.reason || 'прогон прерван'}).`),
+      h('p', null, `Этап «${res.partial_error?.stage || 'неизвестен'}» не выполнен. Итоговый вывод не сформирован.`),
         h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onclick: () => retry(run.id) }, 'Повторить проверку'))) : null,
       resultHead(res, run),
       tilesBar(),
@@ -569,13 +602,13 @@ async function viewResult(run) {
 
   function tilesBar() {
     const t = (id, num, label, color) => h('button', { type: 'button', class: 'tile', 'aria-pressed': String(ui.sev === id), onclick: () => { ui.sev = id; ui.sel = null; if (!['doc', 'reqs', 'set', 'questions'].includes(ui.tab)) ui.tab = 'doc'; draw(); } },
-      h('b', { style: { color } }, String(num)), h('span', null, label));
+      h('b', { style: { color } }, res.partial ? '—' : String(num)), h('span', null, label));
     return h('div', { class: 'tiles', role: 'group', 'aria-label': 'Фильтр по серьёзности' },
       t('all', counts.all, 'все замечания', 'var(--ink)'),
       t('critical', counts.critical, SEV.critical.many, 'var(--crit)'),
       t('major', counts.major, SEV.major.many, 'var(--major)'),
       t('minor', counts.minor, SEV.minor.many, 'var(--minor)'),
-      h('div', { class: 'tile static' }, h('b', null, String(res.summary.requirements_total)), h('span', null, 'требований проверено')),
+      h('div', { class: 'tile static' }, h('b', null, res.partial ? '—' : String(res.summary.requirements_total)), h('span', null, 'требований проверено')),
       h('div', { class: 'tile static' }, h('b', null, String(Object.keys(res.reviewer_decisions || {}).length)), h('span', null, 'решений ревьюера')));
   }
 
@@ -610,8 +643,8 @@ async function viewResult(run) {
       vis.length ? vis.map((f) => f.id === ui.sel ? findingCard(f, { id: `card-${f.id}` })
         : h('button', { type: 'button', class: 'fnd', id: `card-${f.id}`, 'aria-pressed': 'false', onclick: () => { ui.sel = f.id; draw(f.id); } },
           h('span', { class: `num sev-${f.severity}` }, String(f._n)), h('span', { class: 'tt' }, f.title || f.defect)))
-        : h('div', { class: 'empty' }, h('b', null, findings.length ? 'Под фильтр ничего не попало.' : 'Поля чистые.'),
-          h('span', { class: 'muted' }, findings.length ? 'Сбросьте фильтр по серьёзности или критерию.' : `Все ${res.summary.requirements_total} требований однозначны, проверяемы и не противоречат друг другу.`)));
+        : h('div', { class: 'empty' }, h('b', null, res.partial ? 'Не проверено.' : (findings.length ? 'Под фильтр ничего не попало.' : 'Поля чистые.')),
+          h('span', { class: 'muted' }, res.partial ? 'Проверка требований не завершена.' : (findings.length ? 'Сбросьте фильтр по серьёзности или критерию.' : `Все ${res.summary.requirements_total} требований однозначны, проверяемы и не противоречат друг другу.`))));
     return h('div', { class: 'doc-split' }, article, aside);
   }
 
@@ -684,10 +717,10 @@ async function viewResult(run) {
         h('td', { class: 'id' }, fs.length ? h('button', { type: 'button', class: 'btn-link', style: { minHeight: 0, color: 'var(--ink)' }, 'aria-expanded': String(open.has(r.id)), onclick: (e) => { e.stopPropagation(); toggle(); } }, (open.has(r.id) ? '− ' : '+ ') + r.id) : r.id),
         h('td', { class: 'id' }, r.doc_id || '—'),
         h('td', null, h('div', null, r.summary), h('div', { class: 'small muted' }, r.section || '')),
-        h('td', null, fs.length ? h('div', { class: 'chips' }, Object.keys(SEV).map((s) => {
+        h('td', null, r.status === 'not_checked' ? h('span', { class: 'pill grey' }, 'Не проверено') : fs.length ? h('div', { class: 'chips' }, Object.keys(SEV).map((s) => {
           const n = fs.filter((f) => f.severity === s).length; return n ? h('span', { class: `pill ${s}` }, `${n} ${SEV[s].many}`) : null;
         })) : h('span', { class: 'pill ok' }, 'нарушений нет')),
-        h('td', null, worst ? h('span', { class: `sev-${worst}`, style: { fontWeight: 700, fontSize: '14px' } }, worst === 'critical' ? 'не готово' : 'с замечаниями') : h('span', { class: 'small muted' }, allForRequirement.length ? 'скрыто фильтром' : 'pass'))));
+        h('td', null, r.status === 'not_checked' ? h('span', { class: 'small muted' }, 'Не проверено') : worst ? h('span', { class: `sev-${worst}`, style: { fontWeight: 700, fontSize: '14px' } }, worst === 'critical' ? 'не готово' : 'с замечаниями') : h('span', { class: 'small muted' }, allForRequirement.length ? 'скрыто фильтром' : 'pass'))));
       if (open.has(r.id)) rows.push(h('tr', null, h('td', { colspan: '5', style: { paddingTop: 0 } },
         h('p', { class: 'small', style: { margin: '0 0 8px', color: 'var(--ink-2)' } }, h('b', null, 'Цитата: '), `«${r.quote}»`),
         fs.map((f) => findingCard(f)))));
@@ -703,6 +736,7 @@ async function viewResult(run) {
 
   function setTab() {
     const vis = visible().filter((f) => setFindings.includes(f));
+    if (res.set_check_status === 'not_checked') return h('div', { class: 'empty' }, h('b', null, 'Не проверено.'), h('span', { class: 'muted' }, 'Проверка набора не выполнялась.'));
     return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '900px' } },
       h('p', { class: 'muted', style: { margin: 0 } }, 'Замечания ко всему набору: противоречия между требованиями, пропуски, единицы измерения, термины, оформление документа (ISO/IEC/IEEE 29148, п. 5.2.6; IEEE 830, п. 4.3).'),
       vis.length ? vis.map((f) => findingCard(f)) : h('div', { class: 'empty' }, h('b', null, 'Нарушений в наборе нет.')));
@@ -730,6 +764,7 @@ async function viewResult(run) {
   }
 
   function traceTab() {
+    if (res.set_check_status === 'not_checked') return h('div', { class: 'empty' }, h('b', null, 'Не проверено.'), h('span', { class: 'muted' }, 'Трассировка и покрытие критериями приёмки не проверялись.'));
     const matrix = res.traceability_matrix || [];
     const value = (row, ...keys) => keys.map((key) => row?.[key]).find((item) => item !== undefined && item !== null) ?? '—';
     const list = (item) => Array.isArray(item) ? item.join(', ') : (item || '—');
@@ -785,8 +820,10 @@ async function viewResult(run) {
     const coverage = (cu.covered ?? cu.covered_units) !== undefined
       ? `${cu.covered ?? cu.covered_units} из ${cu.total ?? cu.total_units} фрагментов`
       : (p.coverage_percent !== undefined && p.coverage_percent !== null ? `${p.coverage_percent}%` : '—');
-    const rows = [['Документ', p.document_title], ['Файл', p.file_name], ['Дата прогона', p.date ? fmtDate(p.date) : '—'], ['Модель', p.model],
+    const rows = [['Документ', p.document_title], ['Файл', p.file_name], ['Дата прогона', p.date ? fmtDate(p.date) : '—'],
+      ['Запрошенная модель', p.requested_model || p.model], ['Фактически использована', p.actual_model || p.model],
       ['Режим', p.mode || run.mode], ['Модели по шагам', Object.entries(p.models_by_step || {}).map(([step, model]) => `${step}: ${model}`).join('; ') || '—'],
+      ['Переходы fallback', (p.model_trace || []).filter((x) => x.result === 'fallback' || x.result === 'skipped').map((x) => `${x.model}: ${x.reason}`).join('; ') || 'не было'],
       ['LLM-вызовы', String(p.llm_calls ?? '—')], ['Попадания в кэш', String(p.cache_hits ?? '—')],
       ['Длительность', p.duration_seconds == null ? '—' : `${p.duration_seconds} с`], ['Покрытие', coverage],
       ['Неподтверждённые', String((res.unverified_findings || []).length)],
@@ -984,6 +1021,7 @@ function historyRow(r) {
     not_ready: h('span', { class: 'pill critical' }, 'Не готово'),
     ready_with_notes: h('span', { class: 'pill major' }, 'С замечаниями'),
     ready: h('span', { class: 'pill ok' }, 'Готово'),
+    incomplete: h('span', { class: 'pill grey' }, 'Частичный отчёт'),
   }[r.verdict];
   const running = r.status === 'running' || r.status === 'queued';
   let state_;
@@ -994,6 +1032,9 @@ function historyRow(r) {
       h('div', { class: 'bar', role: 'progressbar', 'aria-valuenow': r.progress, 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-label': 'Прогресс' }, h('span', { style: { width: `${r.progress}%` } }))));
   } else if (r.status === 'error' || r.status === 'cancelled') {
     state_ = h('td', { colspan: '2' }, h('span', { class: 'pill grey' }, r.status === 'error' ? `Ошибка: ${r.error?.message || ''}`.slice(0, 80) : 'Остановлена'));
+  } else if (r.status === 'partial') {
+    state_ = [h('td', null, h('span', { class: 'pill grey' }, 'Частичный отчёт')),
+      h('td', null, h('span', { class: 'muted' }, '— / — / —'))];
   } else {
     const b = r.by_severity || {};
     state_ = [h('td', null, verdict || '—'), h('td', null, h('div', { class: 'chips' },
@@ -1007,9 +1048,13 @@ function historyRow(r) {
     h('td', { class: 'small', style: { whiteSpace: 'nowrap' } }, fmtDate(r.created_at)),
     state_,
     h('td', { style: { textAlign: 'right', whiteSpace: 'nowrap' } },
-      running ? h('button', { type: 'button', class: 'btn-ghost', onclick: async () => { await api(`api/runs/${r.id}/cancel`, { method: 'POST' }).catch((e) => toast(e.message)); } }, 'Остановить')
+      running ? h('button', { type: 'button', class: 'btn-ghost', onclick: async (e) => {
+        e.target.disabled = true; e.target.textContent = 'Запрошена остановка…';
+        await api(`api/runs/${r.id}/cancel`, { method: 'POST' }).catch((x) => toast(x.message));
+      } }, 'Остановить')
         : h('div', { class: 'row', style: { justifyContent: 'flex-end' } },
           h('a', { class: 'btn-ghost', href: go }, 'Открыть'),
+          r.status === 'partial' ? h('button', { type: 'button', class: 'btn-ghost', onclick: () => retry(r.id) }, 'Повторить') : null,
           h('button', { type: 'button', class: 'btn-ghost btn-danger', 'aria-label': `Удалить проверку ${r.title}`, onclick: async () => {
             if (!confirm(`Удалить проверку «${r.title}» из истории?`)) return;
             await api(`api/runs/${r.id}`, { method: 'DELETE' }).catch((e) => toast(e.message)); viewHistory();

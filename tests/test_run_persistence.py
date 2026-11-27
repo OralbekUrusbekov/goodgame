@@ -109,6 +109,26 @@ def test_delete_removes_persisted_run(tmp_path: Path) -> None:
     store.close()
 
 
+def test_partial_run_remains_distinct_after_reload(tmp_path: Path) -> None:
+    folder = tmp_path / "web"
+    first = RunStore(data_dir=folder)
+    run = _terminal_run(status="partial")
+    run.finished_at = time.time()
+    run.result = {"partial": True, "summary": {"requirements_total": 1, "by_severity": {}},
+                  "verdict": {"status": "incomplete", "ready": False}}
+    run.report_md = "# Частичный отчёт\n\nПроверка не завершена.\n"
+    first.runs[run.id] = run
+    first.persist(run)
+    second = RunStore(data_dir=folder)
+    restored = second.get(run.id)
+    assert restored is not None
+    assert restored.status == "partial"
+    assert restored.public()["verdict"] == "incomplete"
+    assert restored.public()["partial"] is True
+    first.close()
+    second.close()
+
+
 def test_retry_of_restored_run_without_upload_returns_409(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

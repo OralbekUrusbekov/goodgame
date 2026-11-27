@@ -33,7 +33,7 @@ python -m web
 в схему [web-contract.md](web-contract.md). Основное содержимое отчёта формирует тот же reporter; веб дополняет его
 только служебными секциями F-ID, сравнения и решений ревьюера.
 
-- Модель и ключ берутся из `.env` (см. `.env.example`): `LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_FALLBACK`.
+- Модель и ключ берутся из `.env` (см. `.env.example`): `LLM_PROVIDER=gemini`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_FALLBACK`. По умолчанию: `gemini-3.5-flash`, затем `gemini-3.5-flash-lite` и `gemini-2.5-flash`.
 - `LLM_PROVIDER=mock` — детерминированный агент без сети (для проверки интерфейса).
 - `VALIDATOR_MOCK=1` — старый эвристический демо-конвейер `web/mock_pipeline.py`.
 - Если выбран проект GitLab, файлы выбранных scopes выгружаются во временную папку и передаются агенту
@@ -60,7 +60,7 @@ python -m web
 | POST | `/api/runs` | `{upload_id, title, work_type, criteria[], gitlab_project_id, ref, scopes[], model, no_cache}` → `{run_id}` |
 | POST | `/api/runs/upload` | то же одним multipart-запросом (файл + поля) |
 | GET | `/api/runs` | история |
-| GET | `/api/runs/{id}` | статус и этап: `reading … summary`, `done`, `error`, `cancelled` |
+| GET | `/api/runs/{id}` | статус и этап: `reading … summary`, `done`, `partial`, `error`, `cancelled` |
 | GET | `/api/runs/{id}/result` | JSON результата |
 | GET | `/api/runs/{id}/report.md` | тот же отчёт, что у CLI (`?download=1` — скачать файлом) |
 | POST | `/api/runs/{id}/cancel`, `/retry` | остановить / запустить заново |

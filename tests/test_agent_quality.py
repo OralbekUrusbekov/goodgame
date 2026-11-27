@@ -166,7 +166,11 @@ def test_partial_result_error_preserves_segmented_requirements(tmp_path: Path, m
     assert error.payload["requirements"][0]["report_id"] == "R-01"
     assert error.payload["requirement_checks"] == []
     assert error.payload["set_check"]["findings"] == []
+    assert error.payload["requirements"][0]["status"] == "not_checked"
+    assert error.payload["verdict"]["status"] == "incomplete"
+    assert error.payload["verdict"]["ready"] is False
     assert "ЧАСТИЧНЫЙ ОТЧЁТ" in error.report_markdown
+    assert "Проверка не завершена" in error.report_markdown
 
 
 def test_requirement_batches_run_concurrently_but_return_source_order(tmp_path: Path) -> None:

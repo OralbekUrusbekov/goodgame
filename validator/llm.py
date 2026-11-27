@@ -20,6 +20,8 @@ from .models import CRITERIA
 
 JSONSchema = dict[str, Any]
 INVALID_JSON_NOTE = "Предыдущий ответ был невалидным JSON; верни строго валидный JSON, короче."
+_UNAVAILABLE_MODELS: set[tuple[str, str]] = set()
+_UNAVAILABLE_MODELS_LOCK = threading.Lock()
 
 
 def _close_unbalanced(value: str) -> str:
@@ -486,10 +488,12 @@ class ProviderRouter(LLMProvider):
         self.current = 0
         self.name = providers[0].name
         self.model = providers[0].model
+        self.requested_model = f"{providers[0].name}:{providers[0].model}"
         self.calls = 0
         self.cache_hits = 0
         self.requests = 0
         self.models_by_step: dict[str, list[str]] = {}
+        self.model_trace: list[dict[str, str]] = []
         self._state_lock = threading.Lock()
 
     @staticmethod
@@ -502,7 +506,31 @@ class ProviderRouter(LLMProvider):
             or (isinstance(status, int) and status >= 500)
             or "429" in message
             or bool(re.search(r"\b5\d\d\b", message))
+            or ProviderRouter._model_unavailable(error)
         )
+
+    @staticmethod
+    def _model_unavailable(error: Exception) -> bool:
+        message = str(error).lower()
+        status = getattr(error, "status_code", None) or getattr(error, "code", None)
+        status_text = str(getattr(status, "value", status) or "").lower()
+        return (
+            status == 404 or status_text in {"404", "not_found", "not found"}
+            or "404" in message or "not_found" in message or "not found" in message
+            or "no longer available" in message
+        )
+
+    @staticmethod
+    def _reason(error: Exception) -> str:
+        if ProviderRouter._model_unavailable(error):
+            return "модель недоступна"
+        message = str(error).lower()
+        status = getattr(error, "status_code", None) or getattr(error, "code", None)
+        if status == 429 or "429" in message or "quota" in message or "resource_exhausted" in message:
+            return "квота исчерпана"
+        if (isinstance(status, int) and status >= 500) or bool(re.search(r"\b5\d\d\b", message)):
+            return "временная ошибка провайдера"
+        return "ошибка вызова"
 
     def generate_json(
         self, system: str, user: str, schema: JSONSchema | None = None, operation: str = "llm"
@@ -510,11 +538,22 @@ class ProviderRouter(LLMProvider):
         with self._state_lock:
             self.requests += 1
         last_error: Exception | None = None
-        quota_errors: list[tuple[LLMProvider, Exception]] = []
+        fallback_errors: list[tuple[LLMProvider, Exception]] = []
         with self._state_lock:
             start_index = self.current
         for index in range(start_index, len(self.providers)):
             provider = self.providers[index]
+            model_key = (provider.name, provider.model)
+            with _UNAVAILABLE_MODELS_LOCK:
+                known_unavailable = model_key in _UNAVAILABLE_MODELS
+            if known_unavailable:
+                error = RuntimeError("модель ранее отмечена как недоступная")
+                fallback_errors.append((provider, error))
+                with self._state_lock:
+                    self.model_trace.append({"operation": operation, "requested_model": self.requested_model,
+                                             "model": f"{provider.name}:{provider.model}",
+                                             "result": "skipped", "reason": "модель недоступна"})
+                continue
             key = self.cache.key(provider.name, provider.model, system, user, schema)
             cached = self.cache.get(key)
             if cached is not None:
@@ -523,6 +562,9 @@ class ProviderRouter(LLMProvider):
                     self.current = index
                     self.name, self.model = provider.name, provider.model
                     self.models_by_step.setdefault(operation, []).append(f"{provider.name}:{provider.model} (кэш)")
+                    self.model_trace.append({"operation": operation, "requested_model": self.requested_model,
+                                             "model": f"{provider.name}:{provider.model}",
+                                             "result": "cache"})
                 return cached
             try:
                 with self._state_lock:
@@ -533,31 +575,48 @@ class ProviderRouter(LLMProvider):
                     self.current = index
                     self.name, self.model = provider.name, provider.model
                     self.models_by_step.setdefault(operation, []).append(f"{provider.name}:{provider.model}")
+                    self.model_trace.append({"operation": operation, "requested_model": self.requested_model,
+                                             "model": f"{provider.name}:{provider.model}",
+                                             "result": "used"})
                 return result
             except Exception as error:
                 last_error = error
                 if not self._fallback_error(error):
                     raise
-                quota_errors.append((provider, error))
-                if index + 1 >= len(self.providers):
+                reason = self._reason(error)
+                fallback_errors.append((provider, error))
+                if self._model_unavailable(error):
+                    with _UNAVAILABLE_MODELS_LOCK:
+                        _UNAVAILABLE_MODELS.add(model_key)
+                next_provider = next((candidate for candidate in self.providers[index + 1:]
+                                      if (candidate.name, candidate.model) not in _UNAVAILABLE_MODELS), None)
+                with self._state_lock:
+                    self.model_trace.append({"operation": operation, "requested_model": self.requested_model,
+                                             "model": f"{provider.name}:{provider.model}",
+                                             "result": "fallback", "reason": reason,
+                                             "to_model": f"{next_provider.name}:{next_provider.model}" if next_provider else ""})
+                if next_provider is None:
                     break
-                next_provider = self.providers[index + 1]
                 print(
                     f"[validator] fallback: {provider.name}:{provider.model} → "
-                    f"{next_provider.name}:{next_provider.model}",
+                    f"{next_provider.name}:{next_provider.model} ({reason})",
                     file=sys.stderr,
                     flush=True,
                 )
                 with self._state_lock:
                     self.current = max(self.current, index + 1)
-        if quota_errors and len(quota_errors) == len(self.providers) - start_index:
-            models = ", ".join(f"{provider.name}:{provider.model}" for provider, _ in quota_errors)
-            delays = [_quota_wait_seconds(str(error)) for _, error in quota_errors]
+        if fallback_errors and len(fallback_errors) == len(self.providers) - start_index:
+            attempts = "; ".join(
+                f"{provider.name}:{provider.model} — {self._reason(error)}"
+                for provider, error in fallback_errors
+            )
+            delays = [_quota_wait_seconds(str(error)) for _, error in fallback_errors]
             known = [delay for delay in delays if delay is not None]
             wait = f"около {max(known):.0f} с" if known else "не указано провайдером"
-            raise RuntimeError(
-                f"Квота исчерпана у всех моделей: {models}. Время ожидания: {wait}."
-            ) from last_error
+            only_quota = all(self._reason(error) == "квота исчерпана" for _, error in fallback_errors)
+            if only_quota:
+                raise RuntimeError(f"Квота исчерпана у всех моделей: {attempts}. Время ожидания: {wait}.") from last_error
+            raise RuntimeError(f"Не удалось вызвать модели. Попытки: {attempts}.") from last_error
         if last_error:
             raise last_error
         raise RuntimeError("LLM-провайдеры недоступны")

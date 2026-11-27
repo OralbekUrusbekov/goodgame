@@ -6,7 +6,8 @@
 from __future__ import annotations
 
 SEV = {"critical": "критичный", "major": "существенный", "minor": "мелкий"}
-STATUS = {"not_ready": "Не готово к разработке", "ready_with_notes": "Готово с замечаниями", "ready": "Готово к разработке"}
+STATUS = {"not_ready": "Не готово к разработке", "ready_with_notes": "Готово с замечаниями",
+          "ready": "Готово к разработке", "incomplete": "Проверка не завершена"}
 
 
 def _cell(s) -> str:
@@ -35,7 +36,13 @@ def render(result: dict) -> str:
         ("Документ", p.get("document_title")),
         ("Файл", p.get("file_name")),
         ("Дата", p.get("date")),
-        ("Модель", p.get("model")),
+        ("Запрошенная модель", p.get("requested_model") or p.get("model")),
+        ("Фактически использована", p.get("actual_model") or p.get("model")),
+        ("Модели по шагам", "; ".join(f"{step}: {models}" for step, models in (p.get("models_by_step") or {}).items())),
+        ("Переходы fallback", "; ".join(
+            f"{item.get('model')}: {item.get('reason')}" for item in (p.get("model_trace") or [])
+            if item.get("result") in {"fallback", "skipped"}
+        ) or "не было"),
         ("Версия агента", p.get("agent_version")),
         ("Критерии", ", ".join(p.get("criteria", []))),
         ("Проект GitLab", f"{gl['project']} @ {gl['ref']}" if gl else "не подключался"),
@@ -55,6 +62,9 @@ def render(result: dict) -> str:
         rf = [f for f in finds if f.get("req_id") == r["id"]]
         w(f"### {r['id']} ({r.get('doc_id') or 'без номера'})\n")
         w(f"> {r.get('quote', '').strip()}\n")
+        if r.get("status") == "not_checked":
+            w("**Не проверено.**\n")
+            continue
         if not rf:
             w("Нарушений не найдено.\n")
             continue
@@ -62,7 +72,9 @@ def render(result: dict) -> str:
             w(_finding(f))
     w("## 4. Проверка всего набора требований\n")
     sf = [f for f in finds if f.get("scope") in ("set", "code") or not f.get("req_id")]
-    if not sf:
+    if result.get("set_check_status") == "not_checked":
+        w("**Не проверено.**\n")
+    elif not sf:
         w("Нарушений не найдено.\n")
     for f in sf:
         w(_finding(f))
@@ -80,8 +92,10 @@ def render(result: dict) -> str:
     w("## 5. Сводка\n")
     bs = summ.get("by_severity", {})
     w(f"- Требований: **{summ.get('requirements_total', len(reqs))}**")
-    w(f"- Нарушений: **{summ.get('findings_total', len(finds))}** "
-      f"(критичных — {bs.get('critical', 0)}, существенных — {bs.get('major', 0)}, мелких — {bs.get('minor', 0)})")
+    counts = "—" if result.get("partial") else summ.get('findings_total', len(finds))
+    breakdown = "этап не завершён" if result.get("partial") else (
+        f"критичных — {bs.get('critical', 0)}, существенных — {bs.get('major', 0)}, мелких — {bs.get('minor', 0)}")
+    w(f"- Нарушений: **{counts}** ({breakdown})")
     crit = [by_id[i] for i in summ.get("critical_ids", []) if i in by_id]
     if crit:
         w("\nКритичные дефекты:\n")

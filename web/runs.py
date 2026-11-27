@@ -131,7 +131,7 @@ class Run:
     options: dict
     gitlab_project: dict | None  # {"id", "path", "ref"}
     created_at: float = field(default_factory=time.time)
-    status: str = "queued"  # queued | running | done | error | cancelled
+    status: str = "queued"  # queued | running | done | partial | error | cancelled
     stage: str = "queued"
     stage_started_at: float = field(default_factory=time.time)
     stage_info: dict = field(default_factory=dict)
@@ -144,6 +144,8 @@ class Run:
     finished_at: float | None = None
     mode: str = "demo"
     decisions: dict[str, dict] = field(default_factory=dict)
+    cancel_requested_at: float | None = None
+    cancel_outcome: str | None = None
     cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
 
     def public(self) -> dict:
@@ -163,11 +165,12 @@ class Run:
             "verdict": v.get("status"), "by_severity": s.get("by_severity"),
             "requirements_total": s.get("requirements_total"), "partial": (self.result or {}).get("partial", False),
             "decision_counts": decision_counts,
+            "cancel_requested_at": self.cancel_requested_at, "cancel_outcome": self.cancel_outcome,
         }
 
 
 class RunStore:
-    TERMINAL_STATUSES = {"done", "error", "cancelled"}
+    TERMINAL_STATUSES = {"done", "partial", "error", "cancelled"}
 
     def __init__(self, data_dir: str | Path | None = None):
         self.uploads: dict[str, Upload] = {}
@@ -210,6 +213,8 @@ class RunStore:
             finished_at=data.get("finished_at"),
             mode=str(data.get("mode") or "demo"),
             decisions=dict(data.get("decisions") or {}),
+            cancel_requested_at=data.get("cancel_requested_at"),
+            cancel_outcome=data.get("cancel_outcome"),
         )
 
     def _load_runs(self) -> None:
@@ -297,10 +302,16 @@ class RunStore:
     def cancel(self, run_id: str) -> Run | None:
         run = self.runs.get(run_id)
         if run and run.status in ("queued", "running"):
+            run.cancel_requested_at = time.time()
+            run.cancel_outcome = "requested"
             run.cancel_event.set()
             if run.status == "queued":
                 run.status, run.stage, run.finished_at = "cancelled", "cancelled", time.time()
+                run.cancel_outcome = "cancelled"
                 self.persist(run)
+        elif run and run.status in self.TERMINAL_STATUSES:
+            run.cancel_outcome = "completed_before_cancel"
+            self.persist(run)
         return run
 
     def delete(self, run_id: str) -> None:
@@ -377,24 +388,18 @@ class RunStore:
             base_report = result.get("report_markdown") or _agent_report(result) or report_md.render(result)
             run.report_md = _with_reviewer_decisions(_with_changes(base_report, result.get("changes", {})), run.decisions)
             run.warnings.extend(w for w in result.get("warnings", []) if w not in run.warnings)
-            run.stages_done = list(STAGES)
-            run.status, run.stage, run.progress = "done", "done", 100
+            if result.get("partial"):
+                run.status, run.stage = "partial", "partial"
+                run.progress = min(run.progress, 99)
+            else:
+                run.stages_done = list(STAGES)
+                run.status, run.stage, run.progress = "done", "done", 100
         except RunCancelled:
             run.status, run.stage = "cancelled", "cancelled"
+            run.cancel_outcome = "cancelled"
         except Exception as e:  # noqa: BLE001
-            log.exception("Прогон %s упал", run.id)
-            code = getattr(e, "code", None) or e.__class__.__name__
-            msg = getattr(e, "message", None) or str(e) or e.__class__.__name__
-            status = getattr(e, "status_code", None) or getattr(e, "code", None)
-            if "429" in str(status) or "429" in msg or "quota" in msg.lower() or "rate" in msg.lower():
-                code = "llm_429"
-            hint = getattr(e, "hint", "")
-            if code == "llm_429":
-                delay = re.search(r"(?:retry(?:Delay)?|повтор)[^0-9]{0,20}(\d+)\s*s", msg, re.I)
-                availability = f"Повторите примерно через {delay.group(1)} с. " if delay else "Повторите позже. "
-                hint = availability + "Можно выбрать другую модель в расширенных настройках новой проверки."
-            run.error = {"stage": run.stage, "code": str(code), "message": msg, "hint": hint,
-                         "trace": traceback.format_exc(limit=3)}
+            log.error("Прогон %s упал на этапе %s (%s)", run.id, run.stage, e.__class__.__name__)
+            run.error = _public_error(e, run)
             run.status = "error"
         finally:
             run.finished_at = time.time()
@@ -452,8 +457,15 @@ def normalize_result(result: dict, path: Path, run: Run) -> dict:
     summ.setdefault("by_severity", by)
     summ.setdefault("critical_ids", [f["id"] for f in finds if f["severity"] == "critical"])
     v = result.setdefault("verdict", {})
-    v.setdefault("status", "not_ready" if by["critical"] else ("ready_with_notes" if by["major"] else "ready"))
-    v.setdefault("ready", v["status"] != "not_ready")
+    partial = bool(result.get("partial"))
+    if partial:
+        v.update({"status": "incomplete", "ready": False,
+                  "text": "Проверка не завершена. Итоговый вывод не сформирован."})
+        for req in reqs:
+            req.setdefault("status", "not_checked")
+    else:
+        v.setdefault("status", "not_ready" if by["critical"] else ("ready_with_notes" if by["major"] else "ready"))
+        v.setdefault("ready", v["status"] in {"ready", "ready_with_notes"})
     v.setdefault("text", "")
     v.setdefault("fix_first", summ["critical_ids"][:5])
     result.setdefault("warnings", [])
@@ -462,6 +474,40 @@ def normalize_result(result: dict, path: Path, run: Run) -> dict:
     result.setdefault("traceability_matrix", [])
     result.setdefault("test_cases", [])
     return result
+
+
+def _redact_diagnostic(value: str) -> str:
+    value = re.sub(r"AIza[0-9A-Za-z_-]+|AQ\.[A-Za-z0-9_-]{20,}|sk-[0-9A-Za-z_-]+",
+                   "[секрет скрыт]", value)
+    return re.sub(r"(?i)(api[_-]?key|authorization|bearer)(\s*[:=]\s*|\s+)[^\s,;}]+",
+                  r"\1\2[секрет скрыт]", value)
+
+
+def _public_error(error: Exception, run: Run) -> dict:
+    raw = getattr(error, "message", None) or str(error) or error.__class__.__name__
+    low = raw.lower()
+    status = str(getattr(error, "status_code", None) or getattr(error, "code", None) or "")
+    code, message, next_step = "internal", "Не удалось завершить проверку", "Повторите запуск."
+    if "429" in status or "429" in low or "quota" in low or "rate limit" in low or "resource_exhausted" in low:
+        code, message = "quota_exhausted", "Квота моделей исчерпана"
+        next_step = "Повторите позже или выберите другую доступную модель."
+    elif any(token in low for token in ("not_found", "not found", "no longer available", "модель недоступна")) or status == "404":
+        code, message = "model_unavailable", "Выбранная модель недоступна"
+        next_step = "Выберите другую модель и повторите запуск."
+    elif any(token in low for token in ("api key", "api_key", "unauthorized", "permission_denied", "invalid key")) or status in {"401", "403"}:
+        code, message = "invalid_key", "Ключ доступа отклонён провайдером"
+        next_step = "Проверьте настройку ключа на сервере и повторите запуск."
+    elif any(token in low for token in ("network", "connection", "timeout", "timed out", "dns")):
+        code, message = "network", "Нет связи с провайдером модели"
+        next_step = "Проверьте сеть сервера и повторите запуск."
+    elif any(token in low for token in ("too large", "request size", "payload", "слишком большой", "лимита токенов")):
+        code, message = "document_too_large", "Документ слишком большой для обработки"
+        next_step = "Разделите документ на части или сократите вложения."
+    technical = _redact_diagnostic(raw)
+    trace = _redact_diagnostic(traceback.format_exc(limit=3))
+    return {"stage": run.stage, "code": code, "message": message,
+            "hint": f"{next_step} ID прогона: {run.id}.",
+            "technical_detail": technical, "diagnostics": trace}
 
 
 store = RunStore()

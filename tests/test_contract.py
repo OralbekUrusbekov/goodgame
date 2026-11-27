@@ -267,7 +267,12 @@ def test_partial_result_error_becomes_partial_contract(tmp_path: Path, monkeypat
     result = run_pipeline(str(source))
 
     assert result["partial"] is True
-    assert result["partial_error"] == {"stage": "checking_set", "reason": "квота исчерпана"}
+    assert result["partial_error"]["stage"] == "checking_set"
+    assert result["partial_error"]["reason"] == "Этап не выполнен"
+    assert result["verdict"] == {
+        "status": "incomplete", "ready": False,
+        "text": "Проверка не завершена. Повторите запуск.", "fix_first": [],
+    }
     assert any(warning["code"] == "partial_result" for warning in result["warnings"])
 
 

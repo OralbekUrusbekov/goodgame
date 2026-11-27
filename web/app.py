@@ -16,7 +16,7 @@ from . import __version__
 from .criteria import catalog
 from .gitlab import SCOPES, GitLabError
 from .gitlab import store as gl
-from .reader import MAX_BYTES, DocumentError, detect_format, read_document
+from .reader import MAX_BYTES, DocumentError, FORMAT_LABELS, detect_format, read_document
 from .runs import pipeline_mode
 from .runs import store as runs
 
@@ -24,11 +24,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("web")
 
 STATIC = Path(__file__).parent / "static"
-DEFAULT_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
+DEFAULT_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"]
+KNOWN_UNAVAILABLE_MODELS = {"gemini-3-flash-preview", "gemini-2.5-flash-lite"}
 
 
 def allowed_models() -> list[str]:
-    return [item.strip() for item in os.getenv("LLM_ALLOWED_MODELS", ",".join(DEFAULT_MODELS)).split(",") if item.strip()]
+    return [item.strip() for item in os.getenv("LLM_ALLOWED_MODELS", ",".join(DEFAULT_MODELS)).split(",")
+            if item.strip() and item.strip() not in KNOWN_UNAVAILABLE_MODELS]
 app = FastAPI(title="bcc spec — проверка ТЗ", version=__version__, docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 
@@ -74,14 +76,15 @@ async def _gitlab_error(_, e: GitLabError):
 @app.get("/api/meta")
 def meta():
     mode = pipeline_mode()
-    model = os.getenv("GEMINI_MODEL") or os.getenv("LLM_MODEL") or ""
+    model = os.getenv("GEMINI_MODEL") or os.getenv("LLM_MODEL") or DEFAULT_MODELS[0]
     try:
         from validator import __version__ as agent_version  # type: ignore
     except Exception:  # noqa: BLE001
         agent_version = None
     return {"web_version": __version__, "mode": mode, "model": model if mode == "agent" else "демо без LLM",
             "agent_version": agent_version, "max_upload_mb": MAX_BYTES // (1024 * 1024),
-            "formats": ["pdf", "docx", "md", "txt"], "allowed_models": allowed_models(),
+            "formats": list(FORMAT_LABELS), "format_labels": list(FORMAT_LABELS.values()),
+            "allowed_models": allowed_models(),
             "stage_timeout": int(os.getenv("WEB_STAGE_TIMEOUT", "900")), "scopes": SCOPES, **catalog()}
 
 
@@ -98,7 +101,7 @@ async def upload_document(file: UploadFile = File(...)):
     name = Path(file.filename or "document").name
     if not detect_format(name):
         return err(415, "format", "Этот формат агент не читает",
-                   "Поддерживаются PDF с текстовым слоем, DOCX, Markdown и TXT.")
+                   f"Поддерживаются {', '.join(FORMAT_LABELS.values())}.")
     data = await file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         return err(413, "size", "Файл больше 20 МБ", "Сохраните документ без изображений или разбейте его на части.")
@@ -118,6 +121,14 @@ async def upload_document(file: UploadFile = File(...)):
     }
     up = runs.save_upload(name, data, preview)
     return {"upload_id": up.id, "file_name": up.file_name, "size": up.size, "preview": preview}
+
+
+@app.get("/api/documents/{upload_id}")
+def get_upload(upload_id: str):
+    up = runs.uploads.get(upload_id)
+    if not up or not up.path.is_file():
+        raise HTTPException(404, "Загруженный файл больше недоступен")
+    return {"upload_id": up.id, "file_name": up.file_name, "size": up.size, "preview": up.preview}
 
 
 # ---------------------------------------------------------------- проверки
@@ -195,7 +206,7 @@ def get_run(run_id: str):
 @app.get("/api/runs/{run_id}/result")
 def get_result(run_id: str):
     run = _run(run_id)
-    if run.status != "done" or not run.result:
+    if run.status not in {"done", "partial"} or not run.result:
         raise HTTPException(409, "Проверка ещё не завершена")
     data = {k: v for k, v in run.result.items() if k != "report_markdown"}
     return {**data, "run": run.public()}
@@ -204,7 +215,7 @@ def get_result(run_id: str):
 @app.get("/api/runs/{run_id}/report.md")
 def get_report(run_id: str, download: int = 0):
     run = _run(run_id)
-    if run.status != "done" or not run.report_md:
+    if run.status not in {"done", "partial"} or not run.report_md:
         raise HTTPException(409, "Отчёт ещё не готов")
     headers = {}
     if download:

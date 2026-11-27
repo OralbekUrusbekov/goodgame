@@ -5,6 +5,9 @@ from pathlib import Path
 import re
 
 
+FORMAT_SPECS = {".pdf": "PDF", ".docx": "DOCX", ".md": "Markdown", ".txt": "TXT"}
+
+
 @dataclass(frozen=True)
 class SourceLine:
     number: int
@@ -177,13 +180,15 @@ def _load_docx(path: Path) -> Document:
     word = WordDocument(path)
     collected: list[tuple[str, str]] = []
     heading = "Начало документа"
-    title = path.stem
+    core_title = (word.core_properties.title or "").strip()
+    title = core_title if _meaningful_title(core_title) else path.stem
     for paragraph in word.paragraphs:
         value = paragraph.text.strip()
-        if paragraph.style and paragraph.style.name.startswith("Heading") and value:
+        style_name = paragraph.style.name if paragraph.style else ""
+        if style_name.casefold() in {"title", "название"} and value and title == path.stem:
+            title = value
+        if style_name.startswith("Heading") and value:
             heading = value
-            if title == path.stem:
-                title = value
         if value:
             collected.append((heading, value))
     for table_index, table in enumerate(word.tables, 1):
@@ -206,4 +211,4 @@ def load_document(filename: str | Path) -> Document:
         return _load_pdf(path)
     if suffix == ".docx":
         return _load_docx(path)
-    raise ValueError(f"Неподдерживаемый формат: {suffix}. Допустимы .md, .txt, .pdf, .docx")
+    raise ValueError(f"Неподдерживаемый формат: {suffix}. Поддерживаются {', '.join(FORMAT_SPECS.values())}.")

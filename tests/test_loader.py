@@ -22,6 +22,7 @@ def test_unknown_format_is_rejected(tmp_path: Path) -> None:
         load_document(source)
     except ValueError as error:
         assert "Неподдерживаемый формат" in str(error)
+        assert "PDF, DOCX, Markdown, TXT" in str(error)
     else:
         raise AssertionError("ValueError expected")
 
@@ -38,3 +39,27 @@ def test_long_document_is_split_by_h2_into_at_most_three_chunks(tmp_path: Path) 
     assert "".join(chunks) == document.text
     for index in range(1, 7):
         assert sum(f"## Часть {index}" in chunk for chunk in chunks) == 1
+
+
+def test_docx_title_uses_properties_or_title_style_not_first_heading(tmp_path: Path) -> None:
+    from docx import Document as WordDocument
+
+    core_path = tmp_path / "fallback-name.docx"
+    core = WordDocument()
+    core.core_properties.title = "Название из свойств"
+    core.add_heading("1. Цель документа", level=1)
+    core.save(core_path)
+    assert load_document(core_path).title == "Название из свойств"
+
+    styled_path = tmp_path / "styled-name.docx"
+    styled = WordDocument()
+    styled.add_paragraph("Название из стиля", style="Title")
+    styled.add_heading("1. Цель документа", level=1)
+    styled.save(styled_path)
+    assert load_document(styled_path).title == "Название из стиля"
+
+    plain_path = tmp_path / "имя-файла.docx"
+    plain = WordDocument()
+    plain.add_heading("1. Цель документа", level=1)
+    plain.save(plain_path)
+    assert load_document(plain_path).title == "имя-файла"

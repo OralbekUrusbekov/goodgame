@@ -8,6 +8,7 @@ import json
 from .llm import LLMProvider
 from .loader import Document, load_document
 from .models import Requirement
+from .prompts import DATA_SAFETY
 from .verifier import quote_exists
 
 
@@ -52,7 +53,8 @@ EXTRACT_SCHEMA = {
 def extract_context(paths: list[str], provider: LLMProvider) -> ContextBundle:
     documents = [load_document(path) for path in resolve_context_paths(paths)]
     payload = [{"source_file": document.path.name, "text": document.text} for document in documents]
-    system = """Извлеки проектный контекст для проверки требований: цели, границы scope in/out,
+    system = f"""Извлеки проектный контекст для проверки требований: цели, границы scope in/out,
+{DATA_SAFETY}
 ограничения (включая SLA, технологии и сроки), термины глоссария, системы и политики.
 Каждый элемент содержит краткий text, точную verbatim quote до 200 символов и source_file.
 Не делай выводов и не добавляй сведения. Верни только JSON по схеме."""
@@ -120,7 +122,8 @@ def check_context(
     bundle: ContextBundle, requirements: list[Requirement], provider: LLMProvider,
     requirements_document: Document | None = None,
 ) -> dict[str, Any]:
-    system = """Сравни каталог требований с извлечённым проектным контекстом и найди только доказуемые
+    system = f"""Сравни каталог требований с извлечённым проектным контекстом и найди только доказуемые
+{DATA_SAFETY}
 несоответствия: непокрытые цели, нетрассируемые требования, конфликты scope, ограничений, терминов,
 систем и политик. Каждый finding обязан содержать две дословные цитаты: из требования и из контекста,
 а также файл контекста. Построй матрицу цели → требования → критерии приёмки → элементы API.

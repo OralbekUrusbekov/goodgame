@@ -56,7 +56,7 @@ def _wait_done(run_id: str, timeout: float = 15) -> dict:
         response = CLIENT.get(f"/api/runs/{run_id}")
         assert response.status_code == 200
         run = response.json()
-        if run["status"] in {"done", "error", "cancelled"}:
+        if run["status"] in {"done", "partial", "error", "cancelled"}:
             return run
         time.sleep(0.02)
     pytest.fail(f"run {run_id} did not finish")
@@ -141,7 +141,9 @@ def test_cancel_stops_running_pipeline(tmp_path: Path, monkeypatch: pytest.Monke
     run_id, _ = _start(source, multipart=True)
     response = CLIENT.post(f"/api/runs/{run_id}/cancel")
     assert response.status_code == 200
-    assert _wait_done(run_id)["status"] == "cancelled"
+    cancelled = _wait_done(run_id)
+    assert cancelled["status"] == "cancelled"
+    assert cancelled["cancel_outcome"] == "cancelled"
 
 
 def test_upload_errors_for_empty_unsupported_and_oversized_files(
@@ -154,6 +156,7 @@ def test_upload_errors_for_empty_unsupported_and_oversized_files(
 
     assert empty.status_code == 422 and empty.json()["code"] == "empty"
     assert unsupported.status_code == 415 and unsupported.json()["code"] == "format"
+    assert unsupported.json()["hint"] == "Поддерживаются PDF, DOCX, Markdown, TXT."
     assert oversized.status_code == 413 and oversized.json()["code"] == "size"
 
 
@@ -171,6 +174,31 @@ def test_application_upload_limit_is_inclusive(monkeypatch: pytest.MonkeyPatch) 
     assert over_limit.json()["message"] == "Файл больше 20 МБ"
 
 
+def test_docx_upload_name_uses_core_title_not_heading(tmp_path: Path) -> None:
+    from docx import Document as WordDocument
+    source = tmp_path / "fallback.docx"
+    word = WordDocument()
+    word.core_properties.title = "Название проверки"
+    word.add_heading("1. Цель документа", level=1)
+    word.add_paragraph("Система сохраняет значение.")
+    word.save(source)
+    with source.open("rb") as stream:
+        response = CLIENT.post("/api/documents", files={"file": (source.name, stream, "application/octet-stream")})
+    assert response.status_code == 200
+    assert response.json()["preview"]["title"] == "Название проверки"
+
+
+def test_uploaded_document_can_be_restored_before_run(tmp_path: Path) -> None:
+    source = tmp_path / "draft.md"
+    source.write_text(TEXT, encoding="utf-8")
+    with source.open("rb") as stream:
+        uploaded = CLIENT.post("/api/documents", files={"file": (source.name, stream, "text/markdown")}).json()
+    restored = CLIENT.get(f"/api/documents/{uploaded['upload_id']}")
+    assert restored.status_code == 200
+    assert restored.json()["file_name"] == "draft.md"
+    assert CLIENT.get("/api/documents/missing-draft").status_code == 404
+
+
 def test_model_allowlist_is_exposed_and_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LLM_ALLOWED_MODELS", "model-a,model-b")
     meta = CLIENT.get("/api/meta")
@@ -179,3 +207,45 @@ def test_model_allowlist_is_exposed_and_rejected(monkeypatch: pytest.MonkeyPatch
     assert meta.json()["allowed_models"] == ["model-a", "model-b"]
     assert response.status_code == 400
     assert "не разрешена" in response.json()["detail"]
+
+
+def test_checker_partial_is_never_ready_in_json_markdown_or_history(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from validator.models import Requirement, SetCheck
+    from validator.pipeline import PartialResultError
+    from validator.reporter import build_payload
+
+    requirement = Requirement("R-01", "—", "Раздел", "Правило", "Система сохраняет значение.")
+    payload = build_payload({
+        "title": "Частичный прогон", "provider": "mock", "model": "broken", "partial": True,
+        "completed_stages": {"segmentation": True, "requirements": False,
+                             "set_check": False, "verification": False},
+    }, [requirement], [], SetCheck({}, []))
+
+    def fail_checker(*args, **kwargs):
+        raise PartialResultError(
+            "проверка требований", RuntimeError("provider raw URL https://example.invalid"), payload,
+            "# Частичный отчёт\n\n**Проверка не завершена.**\n",
+        )
+
+    monkeypatch.setattr("validator.contract._run_agent", fail_checker)
+    source = tmp_path / "partial.md"
+    source.write_text(TEXT, encoding="utf-8")
+    run_id, _ = _start(source, multipart=False)
+    run = _wait_done(run_id)
+
+    assert run["status"] == "partial"
+    assert run["verdict"] == "incomplete"
+    assert run["partial"] is True
+    result = CLIENT.get(f"/api/runs/{run_id}/result").json()
+    assert result["verdict"]["ready"] is False
+    assert result["verdict"]["status"] == "incomplete"
+    assert result["requirements"][0]["status"] == "not_checked"
+    assert result["set_check_status"] == "not_checked"
+    report = CLIENT.get(f"/api/runs/{run_id}/report.md").text
+    assert "Проверка не завершена" in report
+    assert "example.invalid" not in report
+    history = CLIENT.get("/api/runs").json()
+    saved = next(item for item in history if item["id"] == run_id)
+    assert saved["status"] == "partial" and saved["verdict"] == "incomplete"

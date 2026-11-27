@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import json
+from pathlib import Path
 import sys
 import traceback
 
 from validator.config import load_config
 from validator.llm import mask_secrets
-from validator.pipeline import run_pipeline
+from validator.pipeline import PartialResultError, run_pipeline
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -47,8 +49,20 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Требований: {result.requirements_count}; нарушений: {result.findings_count}")
         return 0
     except Exception as error:
+        if isinstance(error, PartialResultError):
+            report_path = Path(args.report)
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(error.report_markdown, encoding="utf-8")
+            json_path = report_path.with_suffix(".json")
+            json_path.write_text(json.dumps(error.payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"Проверка не завершена. Частичный отчёт: {report_path}. Повторите запуск.", file=sys.stderr)
+            return 1
         if args.verbose:
-            traceback.print_exc()
+            secrets = tuple(filter(None, (
+                settings.gemini_api_key if settings else None,
+                settings.openai_api_key if settings else None,
+            )))
+            print(mask_secrets(traceback.format_exc(), secrets), file=sys.stderr)
         else:
             secrets = tuple(filter(None, (
                 settings.gemini_api_key if settings else None,

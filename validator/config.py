@@ -68,7 +68,7 @@ def load_config(
     if selected not in {"gemini", "openai", "mock"}:
         raise ValueError("LLM_PROVIDER должен быть одним из: gemini, openai, mock")
     default_model = {
-        "gemini": os.getenv("GEMINI_MODEL", "gemini-3-flash-preview"),
+        "gemini": os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
         "openai": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         "mock": "mock-deterministic",
     }[selected]
@@ -76,8 +76,8 @@ def load_config(
     fallback = os.getenv("LLM_FALLBACK")
     if fallback is None:
         fallback = (
-            "gemini:gemini-2.5-flash"
-            if selected == "gemini" and selected_model != "gemini-2.5-flash"
+            "gemini:gemini-3.5-flash-lite,gemini:gemini-2.5-flash"
+            if selected == "gemini"
             else ""
         )
     return Settings(

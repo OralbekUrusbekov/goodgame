@@ -14,11 +14,20 @@ from validator.llm import LLMProvider, MockProvider, ProviderRouter, mask_secret
 from validator.loader import load_document
 from validator.models import Requirement
 from validator.config import Settings
+from validator.config import load_config
 from tests.pdf_helpers import UnicodePdfWriter
 
 
 def mock_settings() -> Settings:
     return Settings(provider="mock", model="mock-deterministic", cache_enabled=False)
+
+
+def test_current_gemini_defaults_and_fallback_chain(monkeypatch) -> None:
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    monkeypatch.delenv("LLM_FALLBACK", raising=False)
+    settings = load_config(provider="gemini")
+    assert settings.model == "gemini-3.5-flash"
+    assert settings.llm_fallback == "gemini:gemini-3.5-flash-lite,gemini:gemini-2.5-flash"
 
 
 def test_cache_prevents_second_provider_call(tmp_path: Path) -> None:

@@ -239,12 +239,16 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
 
     by_severity = {s: sum(1 for f in findings if f["severity"] == s) for s in SEV_ORDER}
     critical_ids = [f["id"] for f in findings if f["severity"] == "critical"]
+    partial = bool(payload.get("partial") or meta.get("partial"))
     status = DECISION.get(summary.get("decision", ""),
                           "not_ready" if by_severity["critical"] else "ready_with_notes" if by_severity["major"] else "ready")
+    if partial:
+        status = "incomplete"
     verdict_text = {
         "not_ready": "Начинать разработку нельзя: есть критические дефекты.",
         "ready_with_notes": "Можно начинать после исправления существенных замечаний.",
         "ready": "Документ готов к разработке.",
+        "incomplete": "Проверка не завершена. Итоговый вывод о готовности документа не сформирован.",
     }[status] + (f" Замечаний: {len(findings)} — критичных {by_severity['critical']}, "
                  f"существенных {by_severity['major']}, мелких {by_severity['minor']}.")
 
@@ -287,8 +291,11 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
             "file_name": file_name,
             "date": meta.get("run_at"),
             "model": f"{meta.get('provider', '')}/{meta.get('model', '')}".strip("/"),
+            "requested_model": meta.get("requested_model") or f"{meta.get('provider', '')}:{meta.get('model', '')}".strip(":"),
+            "actual_model": f"{meta.get('provider', '')}:{meta.get('model', '')}".strip(":"),
             "mode": "agent",
             "models_by_step": meta.get("models_by_step", {}),
+            "model_trace": meta.get("model_trace", []),
             "agent_version": meta.get("agent_version"),
             "criteria": ["iso29148", "ieee830"] + (["context"] if meta.get("context_used") else []),
             "gitlab": {"project": gitlab.project, "ref": gitlab.ref} if gitlab is not None else None,
@@ -304,7 +311,8 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
         "requirements": [
             {"id": r["report_id"], "doc_id": r.get("source_id") if r.get("source_id") not in (None, "—") else None,
              "section": r.get("section", ""), "summary": r.get("short_text", ""), "quote": r.get("quote", ""),
-             "quote_verified": r.get("quote_verified", True), "line": r.get("line_number")}
+             "quote_verified": r.get("quote_verified", True), "line": r.get("line_number"),
+             "status": r.get("status", "not_checked" if partial else "checked")}
             for r in payload.get("requirements", [])
         ],
         "findings": findings,
@@ -318,12 +326,13 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
             "critical_ids": critical_ids,
             "top_fixes": summary.get("top_fixes", []),
         },
-        "verdict": {"status": status, "ready": status != "not_ready", "text": verdict_text.strip(),
+        "verdict": {"status": status, "ready": status in {"ready", "ready_with_notes"}, "text": verdict_text.strip(),
                     "fix_first": critical_ids[:5] or [f["id"] for f in findings[:3]]},
         "traceability_matrix": payload.get("context", {}).get("traceability_matrix", []),
         "test_cases": payload.get("test_cases", []),
         "warnings": warnings,
-        "partial": False,
+        "set_check_status": "not_checked" if not (meta.get("completed_stages") or {}).get("set_check", not partial) else "checked",
+        "partial": partial,
         "report_markdown": report_md,
     }
 
@@ -359,11 +368,12 @@ def run_pipeline(doc_path: str, on_progress: Callable[..., Any] | None = None, g
         if partial_error is not None:
             stage = str(getattr(partial_error, "stage", "unknown"))
             cause = getattr(partial_error, "cause", None)
-            reason = getattr(cause, "message", None) or str(cause or partial_error)
             converted["partial"] = True
-            converted["partial_error"] = {"stage": stage, "reason": reason}
+            converted["verdict"] = {"status": "incomplete", "ready": False,
+                                    "text": "Проверка не завершена. Повторите запуск.", "fix_first": []}
+            converted["partial_error"] = {"stage": stage, "reason": "Этап не выполнен"}
             converted["warnings"].append({"stage": stage, "code": "partial_result",
-                                           "message": f"Этап {stage} не выполнен: {reason}"})
+                                           "message": f"Этап {stage} не выполнен. Повторите запуск."})
         return converted
     finally:
         shutil.rmtree(out_dir, ignore_errors=True)

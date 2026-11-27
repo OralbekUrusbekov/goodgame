@@ -88,6 +88,7 @@ def run_pipeline(
     set_check = SetCheck({}, [])
 
     def partial(stage: str, cause: Exception) -> PartialResultError:
+        checked_ids = {check.requirement_id for check in checks}
         partial_metadata = {
             "title": document.title, "source_path": source,
             "provider": provider.name, "model": provider.model,
@@ -96,15 +97,23 @@ def run_pipeline(
             "coverage_units": {"covered": coverage["covered_units"], "total": coverage["total_units"]},
             "coverage_skipped_units": coverage["skipped_units"],
             "partial": True, "failed_stage": stage,
+            "completed_stages": {
+                "segmentation": True,
+                "requirements": len(checked_ids) == len(requirements),
+                "set_check": bool(set_check.verdicts),
+                "verification": False,
+            },
+            "requested_model": getattr(provider, "requested_model", f"{provider.name}:{provider.model}"),
+            "models_by_step": provider.models_by_step,
+            "model_trace": getattr(provider, "model_trace", []),
         }
         partial_payload = build_payload(partial_metadata, requirements, checks, set_check)
-        reason = " ".join(str(cause).split()) or type(cause).__name__
         markdown = (
-            f"# ЧАСТИЧНЫЙ ОТЧЁТ: этап {stage} не выполнен: {reason}\n\n"
+            f"# ЧАСТИЧНЫЙ ОТЧЁТ: этап {stage} не выполнен\n\n"
             f"- Документ: {document.title}\n"
             f"- Выделено требований: {len(requirements)}\n"
-            f"- Готово проверок требований: {len(checks)}\n"
-            "- Результат не является итоговым вердиктом.\n"
+            "- Готово проверок требований: — (этап не завершён)\n"
+            "- Итог: **Проверка не завершена**. Результат не является итоговым вердиктом.\n"
         )
         return PartialResultError(stage, cause, partial_payload, markdown)
     if verbose:
@@ -184,6 +193,9 @@ def run_pipeline(
         "cache_hits": provider.cache_hits,
         "llm_requests": provider.requests,
         "models_by_step": provider.models_by_step,
+        "requested_model": provider.requested_model,
+        "model_trace": provider.model_trace,
+        "completed_stages": {"segmentation": True, "requirements": True, "set_check": True, "verification": True},
         "duration_seconds": duration,
         "input_sha256": input_sha256,
         "agent_version": agent_version(),

@@ -107,6 +107,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .btn-start { align-self: stretch; border: 0; background: var(--green); color: #000; font-size: 20px; font-weight: 600; min-height: 72px; padding: 0 0 0 28px; display: flex; align-items: center; justify-content: space-between; }
 .btn-start:hover { background: #00A468; }
 .btn-start .arrow { width: 72px; height: 72px; background: var(--gold); color: #000; display: flex; align-items: center; justify-content: center; }
+.mobile-upload { display: none; align-self: flex-start; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
 /* forms */
@@ -313,4 +314,6 @@ table.data .id { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .letter .paper { padding: 24px; }
   .nav { gap: 0 18px; }
   .nav a { padding: 12px 0; }
+  .mobile-upload { display: inline-flex; }
+  .numlist { display: none; }
 }

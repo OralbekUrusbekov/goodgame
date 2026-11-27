@@ -9,8 +9,15 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-SUPPORTED = {".pdf": "pdf", ".md": "md", ".markdown": "md", ".txt": "txt", ".docx": "docx"}
+FORMAT_SPECS = {
+    ".pdf": ("pdf", "PDF"), ".docx": ("docx", "DOCX"),
+    ".md": ("md", "Markdown"), ".markdown": ("md", "Markdown"), ".txt": ("txt", "TXT"),
+}
+SUPPORTED = {extension: spec[0] for extension, spec in FORMAT_SPECS.items()}
 MAX_BYTES = 20 * 1024 * 1024
+FORMAT_LABELS = dict.fromkeys(spec[0] for spec in FORMAT_SPECS.values())
+FORMAT_LABELS = {kind: next(label for current_kind, label in FORMAT_SPECS.values() if current_kind == kind)
+                 for kind in FORMAT_LABELS}
 
 REQ_MARKER_RE = re.compile(r"(?<![\w-])([A-ZА-ЯЁ]{1,6}-\d{1,3}(?:\.\d+)?)(?![\w])")
 SHALL_RE = re.compile(r"\b(должен|должна|должно|должны|shall|must|требуется|необходимо)\b", re.I)
@@ -52,7 +59,7 @@ def read_document(path: Path) -> ReadResult:
         raise DocumentError(
             "format",
             "Этот формат агент не читает",
-            "Поддерживаются PDF с текстовым слоем, DOCX и Markdown.",
+            f"Поддерживаются {', '.join(FORMAT_LABELS.values())}.",
         )
     if path.stat().st_size > MAX_BYTES:
         raise DocumentError("size", "Файл больше 20 МБ", "Сохраните документ без изображений или разбейте на части.")
@@ -61,7 +68,7 @@ def read_document(path: Path) -> ReadResult:
     if fmt == "pdf":
         text, pages = _read_pdf(path)
     elif fmt == "docx":
-        text = _read_docx(path)
+        text, docx_title = _read_docx(path)
     else:
         text = _read_text(path)
 
@@ -74,7 +81,7 @@ def read_document(path: Path) -> ReadResult:
         format=fmt,
         pages=pages,
         tables=count_md_tables(text),
-        title=guess_title(text, path.stem),
+        title=(docx_title or path.stem) if fmt == "docx" else guess_title(text, path.stem),
         req_markers=list(dict.fromkeys(REQ_MARKER_RE.findall(text))),
         shall_count=len(SHALL_RE.findall(text)),
     )
@@ -126,7 +133,7 @@ def _read_pdf(path: Path) -> tuple[str, int]:
     return "\n\n".join(texts), pages
 
 
-def _read_docx(path: Path) -> str:
+def _read_docx(path: Path) -> tuple[str, str | None]:
     try:
         import docx
         from docx.table import Table
@@ -139,6 +146,8 @@ def _read_docx(path: Path) -> str:
         raise DocumentError("broken", "DOCX повреждён или не открывается", "Сохраните документ заново.") from e
 
     lines: list[str] = []
+    core_title = (document.core_properties.title or "").strip()
+    explicit_title = core_title if sum(char.isalnum() for char in core_title) >= 3 else None
     for child in document.element.body.iterchildren():
         tag = child.tag.rsplit("}", 1)[-1]
         if tag == "p":
@@ -148,6 +157,8 @@ def _read_docx(path: Path) -> str:
                 lines.append("")
                 continue
             style = (p.style.name if p.style is not None else "") or ""
+            if style.casefold() in {"title", "название"} and explicit_title is None:
+                explicit_title = text
             m = re.match(r"(?:Heading|Заголовок)\s*(\d)", style)
             if m:
                 lines.append("#" * int(m.group(1)) + " " + text)
@@ -164,7 +175,7 @@ def _read_docx(path: Path) -> str:
                 if i == 0:
                     lines.append("|" + "|".join([" --- "] * len(cells)) + "|")
             lines.append("")
-    return "\n".join(lines)
+    return "\n".join(lines), explicit_title
 
 
 def _clean(text: str) -> str:

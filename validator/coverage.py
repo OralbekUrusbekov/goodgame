@@ -6,6 +6,7 @@ from typing import Any
 
 from .loader import Document
 from .models import Requirement
+from .prompts import DATA_SAFETY
 from .verifier import normalize, quote_exists
 
 
@@ -140,7 +141,8 @@ def uncovered_units(units: list[SourceUnit], requirements: list[Requirement]) ->
 
 
 def coverage_prompt(units: list[SourceUnit]) -> tuple[str, str]:
-    system = """Ты доизвлекаешь пропущенные атомарные требования из фрагментов спецификации.
+    system = f"""Ты доизвлекаешь пропущенные атомарные требования из фрагментов спецификации.
+{DATA_SAFETY}
 Для каждого фрагмента реши, содержит ли он нормативное правило, цель, условие, действие, ожидаемый результат,
 ограничение, интерфейсный контракт, пример поведения или проверяемое утверждение. Если да — верни одно или
 несколько требований с точной цитатой до 200 символов. Если это только метаданные, пояснение без нормы,

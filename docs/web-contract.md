@@ -44,7 +44,7 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
 | `summary`               | —                                                          |
 | `warning`               | `{"code": "llm_429", "message": "повтор через 30 с"}`      |
 
-`done` и `error` веб ставит сам. Если `on_progress` бросил исключение `RunCancelled` —
+`done`, `partial` и `error` веб ставит сам. Если `on_progress` бросил исключение `RunCancelled` —
 пользователь нажал «Остановить», конвейер должен его не глотать.
 
 ## 3. Результат
@@ -56,7 +56,10 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
     "document_title": "Уведомление о расходах по карте",
     "file_name": "requirements.pdf",
     "date": "2026-11-26T16:42:00+05:00",
-    "model": "gemini-2.5-flash",
+    "model": "gemini-3.5-flash",
+    "requested_model": "gemini:gemini-3.5-flash",
+    "actual_model": "gemini:gemini-3.5-flash-lite",
+    "model_trace": [],
     "agent_version": "v1.0 (a1b2c3d)",          // git describe / rev-parse
     "criteria": ["iso29148", "ieee830", "checklist", "fintech"],
     "gitlab": {"project": "retail/card-spend-alerts", "ref": "main"},  // или null
@@ -114,14 +117,14 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
     "critical_ids": ["F-01", "F-02", "F-03", "F-04"]
   },
   "verdict": {
-    "status": "not_ready",              // not_ready | ready_with_notes | ready
+    "status": "not_ready",              // not_ready | ready_with_notes | ready | incomplete
     "ready": false,
     "text": "Начинать разработку нельзя: ...",
     "fix_first": ["F-01", "F-02"]
   },
   "warnings": [{"stage": "checking_gitlab", "code": "gitlab_401", "message": "..."}],
   "partial": false,                     // true, если прогон оборвался, но часть находок есть
-  "partial_error": {"stage": "checking_set", "reason": "quota"},
+  "partial_error": {"stage": "checking_set", "reason": "Этап не выполнен"},
   "traceability_matrix": [],
   "test_cases": [],
   "report_markdown": "# Отчёт о проверке требований\n..."   // ровно то, что пишет CLI

@@ -90,6 +90,8 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
     lines = [f"# Отчёт о проверке требований: {document.title}", "", "## 1. Паспорт прогона", "",
              f"- Название документа: {document.title}", f"- Путь: `{source_path}`",
              f"- Дата и время: {timestamp.isoformat(timespec='seconds')}", f"- Провайдер и модель: {provider} / {model}",
+             f"- Запрошенная модель: {metadata.get('requested_model', f'{provider}:{model}')}",
+             f"- Фактически использована: {provider}:{model}",
              f"- Версия агента: {metadata.get('agent_version', agent_version())}",
              f"- Git tag: {metadata.get('git_tag', git_tag())}",
              f"- Покрытие исходных фрагментов: {coverage_text}",
@@ -100,6 +102,7 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
              f"- Длительность: {metadata.get('duration_seconds', '—')} с",
              f"- SHA-256 входного файла: `{metadata.get('input_sha256', '—')}`",
              f"- Модели по шагам: {json.dumps(metadata.get('models_by_step', {}), ensure_ascii=False)}",
+             f"- Переходы fallback: {json.dumps([item for item in metadata.get('model_trace', []) if item.get('result') in {'fallback', 'skipped'}], ensure_ascii=False)}",
              "", "## 2. Как агент нарезал требования", "",
              "| ID в отчёте | ID в документе | Раздел | Строка | Краткая формулировка | Цитата |",
              "|---|---|---|---:|---|---|"]
@@ -282,13 +285,30 @@ def build_payload(
         "agent_version": metadata.get("agent_version") or agent_version(),
         "unverified_findings": unverified_count,
     }
+    checked_ids = {item.requirement_id for item in checks}
+    partial = bool(metadata.get("partial"))
+    completed_stages = metadata.get("completed_stages") or {}
+    complete = not partial and all(completed_stages.get(stage, True) for stage in
+                                   ("segmentation", "requirements", "set_check", "verification"))
+    summary = report_summary(requirements, checks, set_check)
+    if not complete:
+        summary.update({"decision": "Проверка не завершена", "ready": False, "status": "incomplete"})
+    verdict_status = (
+        "incomplete" if not complete else
+        "not_ready" if summary["by_severity"]["critical"] else
+        "ready_with_notes" if summary["by_severity"]["major"] else "ready"
+    )
     return {
         "metadata": full_metadata,
-        "requirements": [asdict(item) for item in requirements],
+        "requirements": [{**asdict(item), "status": "checked" if item.report_id in checked_ids else "not_checked"}
+                         for item in requirements],
         "requirement_checks": [asdict(item) for item in checks],
         "set_check": asdict(set_check),
         "traceability_matrix": set_check.traceability_matrix,
-        "summary": report_summary(requirements, checks, set_check),
+        "summary": summary,
+        "verdict": {"status": verdict_status, "ready": verdict_status in {"ready", "ready_with_notes"},
+                    "text": "Проверка не завершена." if verdict_status == "incomplete" else summary["justification"]},
+        "partial": not complete,
     }
 
 

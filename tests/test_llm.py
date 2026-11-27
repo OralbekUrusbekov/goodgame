@@ -86,3 +86,41 @@ def test_all_fallback_quotas_report_models_and_wait(tmp_path) -> None:
 
     with pytest.raises(RuntimeError, match=r"Квота исчерпана у всех моделей.*first.*second.*45 с"):
         router.generate_json("system", "user")
+
+
+def test_404_model_falls_back_and_is_skipped_for_later_router(tmp_path) -> None:
+    calls = {"gone": 0}
+
+    class Gone(LLMProvider):
+        name, model = "gemini", "gone-regression-model"
+        def generate_json(self, system, user, schema=None, operation="llm"):
+            calls["gone"] += 1
+            error = RuntimeError("404 NOT_FOUND model no longer available")
+            error.status_code = 404
+            raise error
+
+    class Working(LLMProvider):
+        name, model = "gemini", "working-regression-model"
+        def generate_json(self, system, user, schema=None, operation="llm"):
+            return {"ok": True}
+
+    first = ProviderRouter([Gone(), Working()], LLMCache(tmp_path / "one", enabled=False))
+    second = ProviderRouter([Gone(), Working()], LLMCache(tmp_path / "two", enabled=False))
+    assert first.generate_json("s", "u", operation="segment") == {"ok": True}
+    assert second.generate_json("s", "u", operation="check") == {"ok": True}
+    assert calls["gone"] == 1
+    assert first.model_trace[0]["reason"] == "модель недоступна"
+
+
+def test_fallback_failure_lists_every_model_and_reason(tmp_path) -> None:
+    class Gone(LLMProvider):
+        name = "gemini"
+        def __init__(self, model): self.model = model
+        def generate_json(self, system, user, schema=None, operation="llm"):
+            error = RuntimeError("404 not found")
+            error.status_code = 404
+            raise error
+
+    router = ProviderRouter([Gone("gone-a"), Gone("gone-b")], LLMCache(tmp_path, enabled=False))
+    with pytest.raises(RuntimeError, match=r"gone-a — модель недоступна.*gone-b — модель недоступна"):
+        router.generate_json("s", "u")

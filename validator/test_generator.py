@@ -5,6 +5,7 @@ from typing import Any
 
 from .llm import LLMProvider
 from .models import Requirement
+from .prompts import DATA_SAFETY
 
 
 TEST_SCHEMA = {
@@ -31,7 +32,8 @@ TEST_SCHEMA = {
 
 
 def generate_test_cases(requirements: list[Requirement], provider: LLMProvider) -> list[dict[str, Any]]:
-    system = """Создай черновики тест-кейсов только для функциональных требований.
+    system = f"""Создай черновики тест-кейсов только для функциональных требований.
+{DATA_SAFETY}
 Покрой позитивные, негативные и граничные сценарии, не придумывая новых бизнес-правил.
 Каждый тест должен ссылаться на ID требований и содержать предусловия, шаги, ожидаемый результат
 и граничные значения. Верни только JSON по схеме."""
