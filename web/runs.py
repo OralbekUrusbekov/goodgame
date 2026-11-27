@@ -225,6 +225,23 @@ class RunStore:
             return False
         verdict = result.setdefault("verdict", {})
         changed = run.status == "done" or verdict.get("ready") or verdict.get("status") != "incomplete"
+        checked_total = 0
+        for req in result.get("requirements") or []:
+            if not isinstance(req, dict):
+                continue
+            status = req.get("status") or req.get("check_status")
+            if status not in {"checked", "not_checked"}:
+                status = "not_checked"
+            changed = changed or req.get("status") != status or req.get("check_status") != status
+            req["status"] = status
+            req["check_status"] = status
+            checked_total += status == "checked"
+        summary = result.setdefault("summary", {})
+        changed = changed or summary.get("requirements_checked") != checked_total
+        summary["requirements_checked"] = checked_total
+        if not verdict.get("incomplete_reasons"):
+            verdict["incomplete_reasons"] = ["прогон помечен как неполный"]
+            changed = True
         if not changed:
             return False
         run.status = "partial" if run.status == "done" else run.status
@@ -232,14 +249,8 @@ class RunStore:
             run.stage = "partial"
         verdict.update({"status": "incomplete", "ready": False, "fix_first": verdict.get("fix_first") or [],
                         "text": "Проверка не завершена. Итоговый вывод не сформирован."})
-        for req in result.get("requirements") or []:
-            if isinstance(req, dict) and req.get("status") in (None, "", "pass", "checked"):
-                req["status"] = "not_checked"
-        banner = ("> **Проверка не завершена.** Отчёт частичный: вывод о готовности документа "
-                  "не сформирован, непроверенные требования помечены «Не проверено».\n\n")
-        if run.report_md and not run.report_md.startswith(banner):
-            run.report_md = banner + run.report_md.replace(
-                "Документ готов к разработке", "Проверка не завершена")
+        run.report_md = _with_reviewer_decisions(
+            _with_changes(report_md.render(result), result.get("changes", {})), run.decisions)
         return True
 
     def _load_runs(self) -> None:
@@ -351,7 +362,7 @@ class RunStore:
 
     def decide(self, run_id: str, finding_id: str, decision: str, comment: str = "") -> Run:
         run = self.runs.get(run_id)
-        if not run or run.status != "done" or not run.result:
+        if not run or run.status not in {"done", "partial"} or not run.result:
             raise KeyError("run")
         valid_ids = {item.get("id") for item in [*run.result.get("findings", []), *run.result.get("unverified_findings", [])]}
         if finding_id not in valid_ids:
@@ -412,7 +423,8 @@ class RunStore:
             result = normalize_result(result, path, run)
             _add_comparison(result, run, self.runs.values())
             run.result = result
-            base_report = result.get("report_markdown") or _agent_report(result) or report_md.render(result)
+            base_report = (report_md.render(result) if result["partial"] else
+                           result.get("report_markdown") or _agent_report(result) or report_md.render(result))
             run.report_md = _with_reviewer_decisions(_with_changes(base_report, result.get("changes", {})), run.decisions)
             run.warnings.extend(w for w in result.get("warnings", []) if w not in run.warnings)
             if result.get("partial"):
@@ -458,7 +470,7 @@ def normalize_result(result: dict, path: Path, run: Run) -> dict:
             doc["text"] = ""
     reqs = result.setdefault("requirements", [])
     finds = result.setdefault("findings", [])
-    result.setdefault("unverified_findings", [])
+    unverified = result.setdefault("unverified_findings", [])
     finds[:] = [f for f in finds if f.get("verdict", "fail") == "fail"]
     for i, f in enumerate(finds, 1):
         f.setdefault("id", f"F-{i:02d}")
@@ -466,6 +478,12 @@ def normalize_result(result: dict, path: Path, run: Run) -> dict:
         f.setdefault("scope", "requirement" if f.get("req_id") else "set")
         f.setdefault("criterion_label", f.get("criterion", ""))
         f.setdefault("title", (f.get("defect") or "")[:90])
+        f.setdefault("quotes", [])
+    for i, f in enumerate(unverified, 1):
+        f.setdefault("id", f"U-{i:02d}")
+        f.setdefault("severity", "major")
+        f.setdefault("criterion_label", f.get("criterion", ""))
+        f.setdefault("title", (f.get("defect") or "Неподтверждённый вывод")[:90])
         f.setdefault("quotes", [])
     result.setdefault("code_checks", [])
     if "questions" not in result:
@@ -483,24 +501,76 @@ def normalize_result(result: dict, path: Path, run: Run) -> dict:
     summ.setdefault("findings_total", len(finds))
     summ.setdefault("by_severity", by)
     summ.setdefault("critical_ids", [f["id"] for f in finds if f["severity"] == "critical"])
-    v = result.setdefault("verdict", {})
-    partial = bool(result.get("partial"))
-    if partial:
-        v.update({"status": "incomplete", "ready": False,
-                  "text": "Проверка не завершена. Итоговый вывод не сформирован."})
-        for req in reqs:
-            req.setdefault("status", "not_checked")
-    else:
-        v.setdefault("status", "not_ready" if by["critical"] else ("ready_with_notes" if by["major"] else "ready"))
-        v.setdefault("ready", v["status"] in {"ready", "ready_with_notes"})
-    v.setdefault("text", "")
-    v.setdefault("fix_first", summ["critical_ids"][:5])
     result.setdefault("warnings", [])
     result.setdefault("partial", False)
     result.setdefault("reviewer_decisions", dict(run.decisions))
     result.setdefault("traceability_matrix", [])
     result.setdefault("test_cases", [])
+    # --- полнота проверки: «готово» допустимо только после всех обязательных этапов
+    incoming_verdict = result.get("verdict") or {}
+    if incoming_verdict.get("status") == "incomplete":
+        result["partial"] = True
+    failed = [s for s, st in (result.get("stages") or {}).items() if s in MANDATORY_STAGES and st != "done"]
+    reasons = list(incoming_verdict.get("incomplete_reasons") or [])
+    if result["partial"]:
+        reasons = reasons or ["прогон помечен как неполный"]
+    if failed:
+        result["partial"] = True  # упавший этап = неполный прогон, даже если агент не поставил флаг
+    checked_total, missing = mark_checked(result)
+    if failed:
+        reasons.append("не завершены этапы: " + ", ".join(STAGE_RU.get(s, s) for s in failed))
+    if not reqs:
+        reasons.append("в документе не выделено ни одного требования")
+    if result.get("set_check_status") == "not_checked":
+        reasons.append("не выполнена проверка всего набора требований")
+    if missing:
+        reasons.append(f"проверено {checked_total} из {len(reqs)} требований")
+    summ["requirements_checked"] = checked_total
+    complete = not reasons
+
+    v = result.setdefault("verdict", {})
+    v.setdefault("status", "not_ready" if by["critical"] else ("ready_with_notes" if by["major"] else "ready"))
+    v.setdefault("text", "")
+    v.setdefault("fix_first", summ["critical_ids"][:5])
+    if not complete:
+        result["partial"] = True
+        v["incomplete_reasons"] = reasons
+        if v["status"] != "incomplete":
+            v["overridden_from"] = v["status"]
+        v["status"] = "incomplete"
+        v["text"] = ("Проверка не завершена: " + "; ".join(reasons) +
+                     ". Вывод о готовности к разработке делать нельзя — запустите проверку заново.")
+    v["ready"] = complete and v["status"] in ("ready", "ready_with_notes")
     return result
+
+
+MANDATORY_STAGES = ("reading", "splitting", "checking_requirements", "checking_set", "verifying_quotes")
+STAGE_RU = {"reading": "чтение", "splitting": "нарезка", "checking_requirements": "проверка требований",
+            "checking_set": "проверка набора", "verifying_quotes": "проверка цитат"}
+
+
+def mark_checked(result: dict) -> tuple[int, int]:
+    """Проставляет status и check_status: checked | not_checked.
+
+    Источник: status/check_status, checked, checked_ids. Если агент ничего не сообщил,
+    полный прогон считается проверившим всё, а неполный — требования с находками.
+    """
+    reqs = result["requirements"]
+    ids = result.get("checked_ids")
+    with_findings = {f.get("req_id") for f in result["findings"]}
+    for r in reqs:
+        explicit = r.get("status") or r.get("check_status")
+        if explicit in {"checked", "not_checked"}:
+            ok = explicit == "checked"
+        elif "checked" in r:
+            ok = bool(r["checked"])
+        elif ids is not None:
+            ok = r.get("id") in ids
+        else:
+            ok = not result["partial"] or r.get("id") in with_findings
+        r["status"] = r["check_status"] = "checked" if ok else "not_checked"
+    done = sum(1 for r in reqs if r["status"] == "checked")
+    return done, len(reqs) - done
 
 
 def _redact_diagnostic(value: str) -> str:

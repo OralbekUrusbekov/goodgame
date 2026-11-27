@@ -8,7 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from web.app import app
-from web.runs import Run, RunStore
+from web import report_md
+from web.runs import Run, RunStore, normalize_result
 
 
 def _terminal_run(run_id: str = "saved-run", status: str = "done") -> Run:
@@ -50,6 +51,7 @@ def test_terminal_run_is_saved_and_reloaded(tmp_path: Path, monkeypatch: pytest.
 
     def fake_pipeline(path: str, **kwargs) -> dict:
         return {
+            "requirements": [{"id": "R-01", "summary": "Stores a setting", "checked": True}],
             "summary": {"requirements_total": 1, "by_severity": {}},
             "verdict": {"status": "ready"},
             "report_markdown": "# Сохранённый отчёт\n",
@@ -73,6 +75,30 @@ def test_terminal_run_is_saved_and_reloaded(tmp_path: Path, monkeypatch: pytest.
     assert restored.report_md == run.report_md
     first.close()
     second.close()
+
+
+@pytest.mark.parametrize("field", ["status", "check_status"])
+def test_normalize_accepts_both_not_checked_field_styles(tmp_path: Path, field: str) -> None:
+    source = tmp_path / "requirements.md"
+    source.write_text("# Requirement\n", encoding="utf-8")
+    run = _terminal_run()
+    payload = {
+        "requirements": [{"id": "R-01", "summary": "Requirement", field: "not_checked"}],
+        "summary": {"requirements_total": 1},
+        "verdict": {"status": "ready"},
+    }
+
+    result = normalize_result(payload, source, run)
+
+    assert result["partial"] is True
+    assert result["verdict"]["status"] == "incomplete"
+    assert result["verdict"]["ready"] is False
+    assert result["requirements"][0]["status"] == "not_checked"
+    assert result["requirements"][0]["check_status"] == "not_checked"
+    assert result["summary"]["requirements_checked"] == 0
+    rendered = report_md.render(result)
+    assert "Не проверено" in rendered
+    assert "Готово" not in rendered
 
 
 @pytest.mark.parametrize("status", ["queued", "running"])

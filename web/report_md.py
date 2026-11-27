@@ -6,8 +6,16 @@
 from __future__ import annotations
 
 SEV = {"critical": "критичный", "major": "существенный", "minor": "мелкий"}
-STATUS = {"not_ready": "Не готово к разработке", "ready_with_notes": "Готово с замечаниями",
-          "ready": "Готово к разработке", "incomplete": "Проверка не завершена"}
+STATUS = {"not_ready": "Не готово к разработке", "ready_with_notes": "Готово с замечаниями", "ready": "Готово к разработке",
+          "incomplete": "Проверка не завершена"}
+
+
+def incomplete_banner(result: dict) -> str:
+    s = result.get("summary", {})
+    reasons = result.get("verdict", {}).get("incomplete_reasons") or ["прогон помечен как неполный"]
+    return (f"> **Проверка не завершена.** Проверено {s.get('requirements_checked', 0)} из "
+            f"{s.get('requirements_total', 0)} требований ({'; '.join(reasons)}). "
+            "Вывод о готовности к разработке делать нельзя.\n\n")
 
 
 def _cell(s) -> str:
@@ -27,7 +35,7 @@ def render(result: dict) -> str:
 
     w(f"# Отчёт о проверке требований: {p.get('document_title', '')}\n")
     if result.get("partial"):
-        w("> **Отчёт неполный** — прогон был прерван, выводы по документу целиком делать рано.\n")
+        w(incomplete_banner(result))
 
     w("## 1. Паспорт прогона\n")
     w("| Поле | Значение |\n| :--- | :--- |")
@@ -62,8 +70,8 @@ def render(result: dict) -> str:
         rf = [f for f in finds if f.get("req_id") == r["id"]]
         w(f"### {r['id']} ({r.get('doc_id') or 'без номера'})\n")
         w(f"> {r.get('quote', '').strip()}\n")
-        if r.get("status") == "not_checked":
-            w("**Не проверено.**\n")
+        if (r.get("status") == "not_checked" or r.get("check_status") == "not_checked") and not rf:
+            w("**Не проверено** — этап проверки не дошёл до этого требования.\n")
             continue
         if not rf:
             w("Нарушений не найдено.\n")
@@ -91,7 +99,8 @@ def render(result: dict) -> str:
 
     w("## 5. Сводка\n")
     bs = summ.get("by_severity", {})
-    w(f"- Требований: **{summ.get('requirements_total', len(reqs))}**")
+    w(f"- Требований: **{summ.get('requirements_total', len(reqs))}**, проверено: "
+      f"**{summ.get('requirements_checked', len(reqs))}**")
     counts = "—" if result.get("partial") else summ.get('findings_total', len(finds))
     breakdown = "этап не завершён" if result.get("partial") else (
         f"критичных — {bs.get('critical', 0)}, существенных — {bs.get('major', 0)}, мелких — {bs.get('minor', 0)}")

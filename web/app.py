@@ -353,6 +353,15 @@ def _preconnect():
 
 # ---------------------------------------------------------------- фронтенд
 
+@app.middleware("http")
+async def _no_stale_static(request, call_next):
+    """Браузер перепроверяет статику при каждом заходе — после обновления кода не нужен Ctrl+F5."""
+    response = await call_next(request)
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
