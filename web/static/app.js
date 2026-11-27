@@ -523,9 +523,12 @@ async function viewResult(run) {
     const oldDoc = root.querySelector('.doc');
     const keepScroll = oldDoc ? oldDoc.scrollTop : 0;
     fill(root,
-      res.partial ? h('div', { class: 'alert', role: 'status' }, h('span', { class: 't' }, 'Неполный отчёт'),
-        h('p', null, 'Прогон оборвался, выводы по документу целиком делать рано.'),
-        h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onclick: () => retry(run.id) }, 'Дозапустить ревью'))) : null,
+      res.partial ? h('div', { class: 'alert', role: 'status' },
+        h('span', { class: 'code' }, `ПРОВЕРЕНО ${res.summary.requirements_checked ?? 0} ИЗ ${res.summary.requirements_total}`),
+        h('span', { class: 't' }, 'Проверка не завершена'),
+        h('p', null, `${(res.verdict.incomplete_reasons || ['прогон помечен как неполный']).join('; ')}. `,
+          'Непроверенные требования отмечены во вкладке «Требования». Вывод о готовности к разработке делать нельзя.'),
+        h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onclick: () => retry(run.id) }, 'Запустить проверку заново'))) : null,
       resultHead(res, run),
       tilesBar(),
       tabsBar(),
@@ -572,8 +575,10 @@ async function viewResult(run) {
       vis.length ? vis.map((f) => f.id === ui.sel ? findingCard(f, { id: `card-${f.id}` })
         : h('button', { type: 'button', class: 'fnd', id: `card-${f.id}`, 'aria-pressed': 'false', onclick: () => { ui.sel = f.id; draw(f.id); } },
           h('span', { class: `num sev-${f.severity}` }, String(f._n)), h('span', { class: 'tt' }, f.title || f.defect)))
-        : h('div', { class: 'empty' }, h('b', null, findings.length ? 'Под фильтр ничего не попало.' : 'Поля чистые.'),
-          h('span', { class: 'muted' }, findings.length ? 'Сбросьте фильтр по серьёзности или критерию.' : `Все ${res.summary.requirements_total} требований однозначны, проверяемы и не противоречат друг другу.`)));
+        : h('div', { class: 'empty' }, h('b', null, findings.length ? 'Под фильтр ничего не попало.' : res.partial ? 'Замечаний нет — но проверка не завершена.' : 'Поля чистые.'),
+          h('span', { class: 'muted' }, findings.length ? 'Сбросьте фильтр по серьёзности или критерию.'
+            : res.partial ? `Агент проверил ${res.summary.requirements_checked ?? 0} из ${res.summary.requirements_total} требований. Отсутствие замечаний не означает, что документ готов.`
+              : `Все ${res.summary.requirements_total} требований однозначны, проверяемы и не противоречат друг другу.`)));
     return h('div', { class: 'doc-split' }, article, aside);
   }
 
@@ -631,10 +636,11 @@ async function viewResult(run) {
         h('td', null, h('div', null, r.summary), h('div', { class: 'small muted' }, r.section || '')),
         h('td', null, h('div', { class: 'chips' }, fs.length ? Object.keys(SEV).map((s) => {
           const n = fs.filter((f) => f.severity === s).length; return n ? h('span', { class: `pill ${s}` }, `${n} ${SEV[s].many}`) : null;
-        }) : h('span', { class: 'pill ok' }, 'нарушений нет'),
+        }) : r.check_status === 'not_checked' ? h('span', { class: 'small muted' }, '—') : h('span', { class: 'pill ok' }, 'нарушений нет'),
         linked.length ? h('span', { class: 'pill grey' }, `+${linked.length} в наборе`) : null)),
-        h('td', null, worst ? h('span', { class: `sev-${worst}`, style: { fontWeight: 700, fontSize: '14px' } }, worst === 'critical' ? 'не готово' : 'с замечаниями')
-          : h('span', { class: 'small muted' }, 'готово'))));
+        h('td', null, r.check_status === 'not_checked' && !worst ? h('span', { class: 'pill grey' }, 'не проверено')
+          : worst ? h('span', { class: `sev-${worst}`, style: { fontWeight: 700, fontSize: '14px' } }, worst === 'critical' ? 'не готово' : 'с замечаниями')
+            : h('span', { class: 'small muted' }, 'готово'))));
       if (open.has(r.id)) rows.push(h('tr', null, h('td', { colspan: '5', style: { paddingTop: 0 } },
         h('p', { class: 'small', style: { margin: '0 0 8px', color: 'var(--ink-2)' } }, h('b', null, 'Цитата: '), `«${r.quote}»`),
         fs.map((f) => findingCard(f)),
@@ -729,13 +735,14 @@ function resultHead(res, run) {
     not_ready: ['НА ДОРАБОТКУ', 'var(--crit)', `${crit} ${plural(crit, 'КРИТИЧНЫЙ ДЕФЕКТ', 'КРИТИЧНЫХ ДЕФЕКТА', 'КРИТИЧНЫХ ДЕФЕКТОВ')}`],
     ready_with_notes: ['С ЗАМЕЧАНИЯМИ', 'var(--major)', 'КРИТИЧНЫХ НЕТ'],
     ready: ['К РАЗРАБОТКЕ', 'var(--green-ink)', 'ЗАМЕЧАНИЙ НЕТ'],
-  }[v.status] || ['НЕ ЗАВЕРШЕНО', 'var(--minor)', ''];
-  if (res.partial) stamp.splice(0, 3, 'НЕ ЗАВЕРШЕНО', 'var(--minor)', 'ОТЧЁТ НЕПОЛНЫЙ');
+  }[v.status] || ['НЕ ЗАВЕРШЕНО', 'var(--minor)', `ПРОВЕРЕНО ${res.summary.requirements_checked ?? 0} ИЗ ${res.summary.requirements_total}`];
+  if (res.partial && v.status === 'not_ready') stamp[2] = 'ПРОВЕРКА НЕПОЛНАЯ';
   const gl = res.passport.gitlab;
   return h('div', { class: 'res-head' },
     h('div', { class: 'l' },
       h('span', { class: 'eyebrow grey' }, [res.passport.file_name, gl ? `${gl.project}@${gl.ref}` : null, fmtDate(res.passport.date || run.finished_at),
-        `${res.summary.requirements_total} ${plural(res.summary.requirements_total, 'требование', 'требования', 'требований')}`].filter(Boolean).join(' · ')),
+        res.partial ? `проверено ${res.summary.requirements_checked ?? 0} из ${res.summary.requirements_total} требований`
+          : `${res.summary.requirements_total} ${plural(res.summary.requirements_total, 'требование', 'требования', 'требований')}`].filter(Boolean).join(' · ')),
       h('h1', { class: 'h1' }, res.passport.document_title),
       h('p', null, v.text || '')),
     h('div', { class: 'r' },
@@ -890,6 +897,7 @@ function historyRow(r) {
     not_ready: h('span', { class: 'pill critical' }, 'Не готово'),
     ready_with_notes: h('span', { class: 'pill major' }, 'С замечаниями'),
     ready: h('span', { class: 'pill ok' }, 'Готово'),
+    incomplete: h('span', { class: 'pill grey', title: 'Проверены не все требования или упал обязательный этап' }, 'Не завершено'),
   }[r.verdict];
   const running = r.status === 'running' || r.status === 'queued';
   let state_;

@@ -118,6 +118,33 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
 }
 ```
 
+### Полнота проверки (обязательно для честного вердикта)
+
+«Готово к разработке» допустимо только после всех обязательных этапов. Веб проверяет это сам и **перекрывает
+вердикт агента**, если проверка неполная:
+
+```jsonc
+{
+  "partial": true,                                   // прогон оборвался (429, таймаут, 404 модели…)
+  "stages": {"reading": "done", "splitting": "done", // done | failed | skipped
+             "checking_requirements": "failed", "checking_set": "skipped",
+             "checking_gitlab": "skipped", "verifying_quotes": "skipped"},
+  "requirements": [{"id": "R-01", "checked": true, ...}, {"id": "R-02", "checked": false, ...}],
+  "checked_ids": ["R-01"]                            // альтернатива полю checked
+}
+```
+
+Проверка считается неполной, если: `partial: true`; любой обязательный этап (`reading`, `splitting`,
+`checking_requirements`, `checking_set`, `verifying_quotes`) не `done`; есть требование с `checked: false`
+(или не из `checked_ids`); не выделено ни одного требования. Тогда веб ставит `verdict.status = "incomplete"`,
+`verdict.ready = false`, причины — в `verdict.incomplete_reasons`, у требований `check_status = "not_checked"`,
+а к `report_markdown` добавляет плашку «Проверка не завершена». Если агент ничего не сообщил о проверенных
+требованиях, при `partial: true` проверенными считаются только требования с находками.
+
+**Агенту:** при сбое этапа не возвращайте `verdict.status = "ready"` и не глотайте исключение молча — либо
+пробросьте его (веб покажет ошибку и кнопку повтора), либо верните частичный результат с `partial: true` и `stages`.
+CLI должен вести себя так же, чтобы отчёты совпадали.
+
 Минимально обязательные поля: `passport`, `document.text`, `requirements`, `findings`
 (с `quote`, `severity`, `criterion`, `title`/`defect`), `verdict.status`, `report_markdown`.
 Остальное веб достроит сам (`summary`, `questions` — из находок).
