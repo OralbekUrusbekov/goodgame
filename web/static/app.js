@@ -18,7 +18,8 @@ const STEPS = [
   { name: 'Проверка цитат и отчёт', stages: ['verifying_quotes', 'summary'] },
 ];
 const STAGE_ORDER = ['queued', 'reading', 'splitting', 'checking_requirements', 'checking_set', 'checking_gitlab', 'verifying_quotes', 'summary', 'done'];
-const WORK_TYPES = ['Новый функционал', 'Доработка', 'Интеграция', 'Исправление ошибки'];
+const CRIT_SHORT = { iso29148: 'ISO 29148', ieee830: 'IEEE 830', checklist: 'чек-лист шаблона', fintech: 'финтех-правила' };
+const WORK_TYPES =['Новый функционал', 'Доработка', 'Интеграция', 'Исправление ошибки'];
 
 function h(tag, props, ...kids) {
   const el = document.createElement(tag);
@@ -125,8 +126,6 @@ async function loadMeta() {
         ? 'validator.pipeline найден, но падает при импорте — смотрите лог сервера'
         : 'Конвейер агента (validator.pipeline) ещё не подключён — результаты демонстрационные, без LLM';
     }
-    document.getElementById('foot-meta').textContent =
-      `Модель: ${m.model || '—'} · версия агента: ${m.agent_version || (m.mode === 'agent' ? '—' : 'демо')} · веб ${m.web_version}`;
     if (!state.intake.form.criteria) state.intake.form.criteria = m.groups.map((g) => g.id);
   } catch (e) {
     state.meta = { groups: [], criteria: [], scopes: [], max_upload_mb: 20, mode: 'unknown' };
@@ -143,7 +142,7 @@ const routes = [
   [/^#\/history$/, () => viewHistory(), 'history'],
   [/^#\/criteria$/, () => viewCriteria(), 'criteria'],
   [/^#\/gitlab$/, () => viewGitlab(), 'gitlab'],
-  [/^#\/runs\/([\w-]+)$/, (m) => viewRun(m[1]), 'history'],
+  [/^#\/runs\/([\w-]+)$/, (m) => viewRun(m[1]), null], // проверка — не пункт меню, ничего не подсвечиваем
 ];
 async function route() {
   clearTimers();
@@ -214,7 +213,7 @@ async function viewIntake() {
   if (!state.projects.length) await loadProjects();
   const stepLabel = it.phase === 'parsed' ? 'Шаг 2 из 3 · настройки' : it.phase === 'error' ? 'Файл не принят' : 'Шаг 1 из 3 · документ';
 
-  const left = h('div', { class: 'col-left' },
+  const left = h('div', { class: 'col-left intake-left' },
     h('span', { class: 'greenbar' }),
     h('span', { class: 'eyebrow' }, stepLabel),
     h('h1', { class: 'display' }, 'Проверка ТЗ до разработки'),
@@ -258,22 +257,21 @@ function readingSheet() {
     h('span', { class: 'mono small muted' }, `${it.file.name} · ${fmtSize(it.file.size)}`),
     h('span', { class: 'h2', style: { fontSize: '40px' } }, 'Читаем документ…'),
     h('span', { class: 'bar indet' }, h('span')),
-    h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' } },
-      h('li', null, '↑ Загружаем файл'), h('li', null, 'Извлекаем текст и таблицы'), h('li', { class: 'muted' }, 'Ищем разделы и номера требований')),
     h('button', { type: 'button', class: 'btn-ghost', style: { alignSelf: 'flex-start', marginTop: 'auto' }, onclick: () => it.abort && it.abort.abort() }, 'Отменить'));
 }
 
 function parsedSheet() {
   const it = state.intake;
   const p = it.upload.preview;
-  return h('div', { class: 'paper sheet', style: { padding: '44px 52px', gap: '22px' } },
+  return h('div', { class: 'paper sheet parsed' },
     h('div', { class: 'row', style: { justifyContent: 'space-between' } },
       h('span', { class: 'eyebrow' }, '✓ Документ прочитан'),
-      h('button', { type: 'button', class: 'btn-link', onclick: () => { it.phase = 'empty'; it.upload = null; pickFile(); viewIntake(); } }, 'Заменить файл')),
+      h('button', { type: 'button', class: 'btn-link', onclick: pickFile }, 'Заменить файл')),
     h('span', { style: { fontSize: '34px', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.08 } }, p.title),
     h('span', { class: 'mono small muted' }, `${it.upload.file_name} · ${fmtSize(it.upload.size)} · ${p.format.toUpperCase()}`),
     h('div', { class: 'metrics' },
-      metric(p.pages ?? Math.max(1, Math.round(p.chars / 1800)), p.pages ? plural(p.pages, 'страница', 'страницы', 'страниц') : '≈ страниц текста'),
+      p.pages ? metric(p.pages, plural(p.pages, 'страница', 'страницы', 'страниц'))
+        : metric(p.sections.length, plural(p.sections.length, 'раздел', 'раздела', 'разделов')),
       metric(p.req_markers_total, 'пунктов с номерами'),
       metric(p.tables, plural(p.tables, 'таблица', 'таблицы', 'таблиц'))),
     p.req_markers.length ? h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
@@ -281,7 +279,7 @@ function parsedSheet() {
       h('div', { class: 'chips' }, p.req_markers.slice(0, 24).map((m) => h('span', { class: 'chip' }, m)))) : null,
     p.sections.length ? h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
       h('span', { class: 'mono', style: { fontSize: '12px', color: 'var(--ink-3)' } }, 'Разделы'),
-      h('div', { class: 'small', style: { color: 'var(--ink-2)', lineHeight: 1.7 } }, p.sections.slice(0, 14).join(' · '))) : null,
+      h('div', { class: 'small', style: { color: 'var(--ink-2)', lineHeight: 1.7 } }, p.sections.slice(0, 8).join(' · '))) : null,
     !p.looks_like_requirements
       ? h('div', { class: 'note' }, h('b', null, 'Похоже, это не ТЗ. '), 'Не нашлось ни номеров требований, ни формулировок «должен». Если это ТЗ в нестандартном шаблоне — запускайте, агент нарежет текст сам.')
       : p.req_markers_total ? null : h('div', { class: 'note' }, 'В документе нет номеров требований — агент присвоит свои и сохранит цитаты.'),
@@ -311,30 +309,24 @@ function settingsBlock() {
   const ready = state.projects.filter((p) => p.status !== 'error');
   if (f.project && !ready.some((p) => p.id === f.project)) f.project = '';
 
-  const projSel = h('select', { class: 'inline-select mono', id: 'sel-project', onchange: (e) => { f.project = e.target.value; f.ref = ''; viewIntake(); } },
-    ready.map((p) => h('option', { value: p.id, selected: f.project === p.id }, p.path)),
-    h('option', { value: '', selected: !f.project }, ready.length ? 'без сверки с кодом' : 'без сверки с кодом (GitLab не подключён)'));
+  if (!parsed) return [];
+  const blocks = [];
+  if (ready.length) {
+    const projSel = h('select', { class: 'inline-select mono', id: 'sel-project', onchange: (e) => { f.project = e.target.value; f.ref = ''; viewIntake(); } },
+      ready.map((p) => h('option', { value: p.id, selected: f.project === p.id }, p.path)),
+      h('option', { value: '', selected: !f.project }, 'без сверки с кодом'));
+    blocks.push(h('div', { class: 'sentence' },
+      'Сверить с проектом ', h('label', null, h('span', { class: 'sr' }, 'Проект GitLab'), projSel),
+      f.project ? [' ветка ', h('label', null, h('span', { class: 'sr' }, 'Ветка'), branchSelect(f))] : null));
+  } else {
+    blocks.push(h('span', { class: 'small muted' }, 'Без сверки с кодом. Чтобы сверять ТЗ с кодом, ', h('a', { href: '#/gitlab' }, 'подключите проект GitLab'), '.'));
+  }
+  const crit = f.criteria || [];
+  blocks.push(h('span', { class: 'small' }, h('span', { class: 'muted' }, 'Критерии: '),
+    crit.length ? crit.map((c) => CRIT_SHORT[c] || c).join(' · ') : h('span', { class: 'formerr' }, 'не выбраны')));
 
-  const critSel = h('select', { class: 'inline-select', id: 'sel-crit', onchange: (e) => {
-    const all = (state.meta?.groups || []).map((g) => g.id);
-    f.criteria = e.target.value === 'all' ? all : e.target.value === 'iso' ? ['iso29148'] : f.criteria;
-    viewIntake();
-  } },
-  h('option', { value: 'all', selected: (f.criteria || []).length === (state.meta?.groups || []).length }, '29148, 830, чек-листу и финтех-правилам'),
-  h('option', { value: 'iso', selected: (f.criteria || []).length === 1 && f.criteria[0] === 'iso29148' }, 'только ISO/IEC/IEEE 29148'),
-  ((f.criteria || []).length !== (state.meta?.groups || []).length && !((f.criteria || []).length === 1 && f.criteria[0] === 'iso29148'))
-    ? h('option', { value: 'custom', selected: true }, `выбранным критериям (${(f.criteria || []).length})`) : null);
-
-  const sentence = h('div', { class: 'sentence' },
-    'Сверить с проектом ', h('label', null, h('span', { class: 'sr' }, 'Проект GitLab'), projSel),
-    f.project ? [' ветка ', h('label', null, h('span', { class: 'sr' }, 'Ветка'), branchSelect(f))] : null,
-    ' и проверить по ', h('label', null, h('span', { class: 'sr' }, 'Критерии'), critSel));
-
-  const blocks = [sentence];
-  if (!ready.length) blocks.push(h('span', { class: 'small muted' }, 'Чтобы сверять ТЗ с кодом, ', h('a', { href: '#/gitlab' }, 'подключите проект GitLab'), '.'));
-
-  if (parsed) {
-    const more = h('details', { class: 'more' }, h('summary', null, 'Название, тип работы, что сверять и критерии'),
+  {
+    const more = h('details', { class: 'more' }, h('summary', null, 'Изменить название, тип работы, критерии'),
       h('div', { class: 'settings', style: { paddingTop: '12px' } },
         h('div', { class: 'grid2' },
           h('label', { class: 'field' }, 'Название проверки', h('input', { type: 'text', value: f.title, maxlength: '200', oninput: (e) => { f.title = e.target.value; } })),
@@ -349,7 +341,7 @@ function settingsBlock() {
           h('legend', { class: 'small muted', style: { paddingBottom: '8px' } }, 'Критерии'),
           h('div', { class: 'checks' }, (state.meta?.groups || []).map((g) => checkRow(g.label, g.source, (f.criteria || []).includes(g.id), (on) => {
             f.criteria = on ? [...new Set([...(f.criteria || []), g.id])] : (f.criteria || []).filter((x) => x !== g.id);
-            const sel = document.getElementById('sel-crit'); if (sel) { /* текст в предложении обновится при следующей отрисовке */ }
+            viewIntake();
           })))),
       ));
     more.open = !!it.moreOpen;
@@ -358,8 +350,8 @@ function settingsBlock() {
   }
 
   const err = h('span', { class: 'formerr', role: 'alert' });
-  const start = h('button', { type: 'button', class: 'btn-start', onclick: parsed ? startRun : pickFile },
-    parsed ? 'Начать ревью' : 'Выбрать файл', h('span', { class: 'arrow' }, svg(ICON_RIGHT, 26)));
+  const start = h('button', { type: 'button', class: 'btn-start', onclick: startRun },
+    'Начать ревью', h('span', { class: 'arrow' }, svg(ICON_RIGHT, 26)));
   async function startRun() {
     if (!(f.criteria || []).length) { err.textContent = 'Выберите хотя бы один набор критериев.'; return; }
     if (f.project && !f.scopes.length) { err.textContent = 'Выберите, что сверять в коде, или уберите проект.'; return; }
@@ -385,13 +377,13 @@ function checkRow(label, sub, checked, onchange) {
 function branchSelect(f) {
   const proj = state.projects.find((p) => p.id === f.project);
   const sel = h('select', { class: 'inline-select mono', onchange: (e) => { f.ref = e.target.value; } });
-  const fill = (names) => {
+  const setOptions = (names) => {
     fill(sel, ...names.map((n) => h('option', { value: n, selected: (f.ref || proj.default_branch) === n }, n)));
   };
-  if (state.branches[f.project]) fill(state.branches[f.project]);
+  if (state.branches[f.project]) setOptions(state.branches[f.project]);
   else {
-    fill([proj.default_branch]);
-    api(`/api/gitlab/projects/${f.project}/branches`).then((names) => { state.branches[f.project] = names; fill(names); }).catch(() => {});
+    setOptions([proj.default_branch]);
+    api(`/api/gitlab/projects/${f.project}/branches`).then((names) => { state.branches[f.project] = names; setOptions(names); }).catch(() => {});
   }
   return sel;
 }
@@ -422,13 +414,16 @@ function stepStates(run) {
     const last = STAGE_ORDER.indexOf(st.stages[st.stages.length - 1]);
     let s = idx > last ? 'done' : idx >= first ? 'cur' : 'todo';
     const info = run.stage_info || {};
-    let detail = ['6 страниц и таблицы', 'присвоение ID и цитат', 'ISO/IEC/IEEE 29148 · IEEE 830', 'противоречия, пропуски, трассируемость', 'контроллеры, OpenAPI, схема БД', 'каждое замечание сверяется с текстом'][i];
-    if (i === 0) detail = 'извлекаем текст, разделы и таблицы';
+    const crit = (run.options?.criteria || []).map((c) => CRIT_SHORT[c] || c).join(' · ');
+    const scopeLabels = Object.fromEntries((state.meta?.scopes || []).map((x) => [x.id, x.label]));
+    const scopes = (run.gitlab?.scopes || []).map((x) => scopeLabels[x] || x).join(', ');
+    let detail = ['текст, разделы и таблицы', 'присвоение ID и цитат', crit || 'критерии качества требований',
+      'противоречия, пропуски, трассируемость', scopes, 'каждое замечание сверяется с текстом'][i];
     if (i === 1 && info.total && s === 'cur') detail = `${info.total} ${plural(info.total, 'требование', 'требования', 'требований')}`;
     if (i === 2 && s === 'cur' && info.total) detail = `требование ${info.done || 0} из ${info.total}`;
     if (i === 4) {
       if (!run.gitlab) { detail = 'проект не выбран — пропускаем'; if (s !== 'todo') s = 'skip'; }
-      else detail = `${run.gitlab.path} @ ${run.gitlab.ref}`;
+      else detail = `${run.gitlab.path} @ ${run.gitlab.ref}${scopes ? ' · ' + scopes : ''}`;
       if (run.warnings.some((w) => w.stage === 'checking_gitlab')) { s = idx > last ? 'warn' : s; detail = 'нет доступа к проекту — продолжили без кода'; }
     }
     if (i === 5 && s === 'cur' && info.dropped) detail = `отброшено без цитаты: ${info.dropped}`;
@@ -446,7 +441,7 @@ function drawReview(run) {
   const title = err ? 'Ревью прервано' : cancelled ? 'Ревью остановлено' : 'Идёт ревью';
   const text = err ? 'Конвейер не смог завершить проверку. Ниже — что случилось и что можно сделать.'
     : cancelled ? 'Проверку остановили. Можно запустить её заново с теми же настройками.'
-      : 'Обычно это занимает 1–3 минуты. Можно закрыть вкладку — отчёт появится в истории.';
+      : 'Можно закрыть вкладку — проверка продолжится, отчёт появится в истории.';
 
   const left = h('div', { class: 'col-left', style: { gap: '24px' } },
     h('span', { class: 'greenbar' }),
@@ -513,7 +508,9 @@ async function viewResult(run) {
   const marks = buildMarks(res.document.text || '', findings);
   const counts = { all: findings.length };
   for (const s of Object.keys(SEV)) counts[s] = findings.filter((f) => f.severity === s).length;
+  // каждая находка показывается в одной вкладке: у требования — только «свои», связи между требованиями — в наборе
   const setFindings = findings.filter((f) => f.scope !== 'requirement' || !f.req_id);
+  const reqFindings = (rid) => findings.filter((f) => f.req_id === rid && !setFindings.includes(f));
   const criteriaUsed = [...new Map(findings.map((f) => [f.criterion, f.criterion_label || f.criterion])).entries()];
 
   const root = h('div', { class: 'wrap stack' });
@@ -526,7 +523,6 @@ async function viewResult(run) {
     const oldDoc = root.querySelector('.doc');
     const keepScroll = oldDoc ? oldDoc.scrollTop : 0;
     fill(root,
-      res.passport.demo ? h('div', { class: 'note' }, h('b', null, 'Демо-режим. '), 'Конвейер агента ещё не подключён: замечания найдены эвристиками без LLM. Формат отчёта и интерфейс — как у настоящего прогона.') : null,
       res.partial ? h('div', { class: 'alert', role: 'status' }, h('span', { class: 't' }, 'Неполный отчёт'),
         h('p', null, 'Прогон оборвался, выводы по документу целиком делать рано.'),
         h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onclick: () => retry(run.id) }, 'Дозапустить ревью'))) : null,
@@ -552,8 +548,7 @@ async function viewResult(run) {
       t('all', counts.all, 'все замечания', 'var(--ink)'),
       t('critical', counts.critical, SEV.critical.many, 'var(--crit)'),
       t('major', counts.major, SEV.major.many, 'var(--major)'),
-      t('minor', counts.minor, SEV.minor.many, 'var(--minor)'),
-      h('div', { class: 'tile static' }, h('b', null, String(res.summary.requirements_total)), h('span', null, 'требований проверено')));
+      t('minor', counts.minor, SEV.minor.many, 'var(--minor)'));
   }
 
   function tabsBar() {
@@ -587,7 +582,8 @@ async function viewResult(run) {
     return h('div', { class: 'fcard', ...extra },
       h('span', { class: `num bg-${f.severity}` }, String(f._n)),
       h('div', { class: 'body' },
-        h('span', { class: `sev sev-${f.severity}` }, `${SEV[f.severity].label} · ${f.location || (req ? `${req.id} ${req.doc_id}` : 'набор требований')}`),
+        h('span', { class: 'meta' }, h('span', { class: `sev sev-${f.severity}` }, SEV[f.severity].label),
+          ' · ', shortLocation(f.location) || (req ? `${req.id} ${req.doc_id}` : 'набор требований')),
         h('span', { class: 'tt' }, f.title || f.defect),
         f.defect && f.title ? h('p', { class: 'tx' }, f.defect) : null,
         [f.quote, ...(f.quotes || [])].map((q) => h('p', { class: 'qq' }, String(q).replace(/\*\*|`/g, ''))),
@@ -602,12 +598,11 @@ async function viewResult(run) {
     const m = root.querySelector(`mark[data-fid="${CSS.escape(fid)}"]`);
     const doc = root.querySelector('.doc');
     if (m && doc) {
-      if (getComputedStyle(doc).position === 'sticky') {
-        let y = 0; let el = m;
-        while (el && el !== doc) { y += el.offsetTop; el = el.offsetParent; }
-        if (el !== doc) y = m.getBoundingClientRect().top - doc.getBoundingClientRect().top + doc.scrollTop;
-        doc.scrollTop = Math.max(0, y - doc.clientHeight / 3);
-      } else m.scrollIntoView({ block: 'center' });
+      let y = 0; let el = m;
+      while (el && el !== doc) { y += el.offsetTop; el = el.offsetParent; }
+      if (el !== doc) y = m.getBoundingClientRect().top - doc.getBoundingClientRect().top + doc.scrollTop;
+      doc.scrollTop = Math.max(0, y - doc.clientHeight / 3);
+      if (narrow()) { doc.scrollIntoView({ block: 'start' }); return; }
     }
     scrollCard(fid);
   }
@@ -624,20 +619,27 @@ async function viewResult(run) {
     const open = new Set(ui.openReqs || []);
     const rows = [];
     for (const r of res.requirements) {
-      const fs = findings.filter((f) => f.req_id === r.id);
-      const worst = fs.length ? fs.reduce((a, b) => (SEV_ORDER[a.severity] <= SEV_ORDER[b.severity] ? a : b)).severity : null;
+      const fs = reqFindings(r.id);
+      const linked = setFindings.filter((f) => f.req_id === r.id);
+      const all = [...fs, ...linked];
+      const worst = all.length ? all.reduce((a, b) => (SEV_ORDER[a.severity] <= SEV_ORDER[b.severity] ? a : b)).severity : null;
       const toggle = () => { open.has(r.id) ? open.delete(r.id) : open.add(r.id); ui.openReqs = [...open]; draw(); };
-      rows.push(h('tr', { class: fs.length ? 'click' : null, onclick: fs.length ? toggle : null },
-        h('td', { class: 'id' }, fs.length ? h('button', { type: 'button', class: 'btn-link', style: { minHeight: 0, color: 'var(--ink)' }, 'aria-expanded': String(open.has(r.id)), onclick: (e) => { e.stopPropagation(); toggle(); } }, (open.has(r.id) ? '− ' : '+ ') + r.id) : r.id),
+      const has = fs.length || linked.length;
+      rows.push(h('tr', { class: has ? 'click' : null, onclick: has ? toggle : null },
+        h('td', { class: 'id' }, has ? h('button', { type: 'button', class: 'btn-link', style: { minHeight: 0, color: 'var(--ink)' }, 'aria-expanded': String(open.has(r.id)), onclick: (e) => { e.stopPropagation(); toggle(); } }, (open.has(r.id) ? '− ' : '+ ') + r.id) : r.id),
         h('td', { class: 'id' }, r.doc_id || '—'),
         h('td', null, h('div', null, r.summary), h('div', { class: 'small muted' }, r.section || '')),
-        h('td', null, fs.length ? h('div', { class: 'chips' }, Object.keys(SEV).map((s) => {
+        h('td', null, h('div', { class: 'chips' }, fs.length ? Object.keys(SEV).map((s) => {
           const n = fs.filter((f) => f.severity === s).length; return n ? h('span', { class: `pill ${s}` }, `${n} ${SEV[s].many}`) : null;
-        })) : h('span', { class: 'pill ok' }, 'нарушений нет')),
-        h('td', null, worst ? h('span', { class: `sev-${worst}`, style: { fontWeight: 700, fontSize: '14px' } }, worst === 'critical' ? 'не готово' : 'с замечаниями') : h('span', { class: 'small muted' }, 'pass'))));
+        }) : h('span', { class: 'pill ok' }, 'нарушений нет'),
+        linked.length ? h('span', { class: 'pill grey' }, `+${linked.length} в наборе`) : null)),
+        h('td', null, worst ? h('span', { class: `sev-${worst}`, style: { fontWeight: 700, fontSize: '14px' } }, worst === 'critical' ? 'не готово' : 'с замечаниями')
+          : h('span', { class: 'small muted' }, 'готово'))));
       if (open.has(r.id)) rows.push(h('tr', null, h('td', { colspan: '5', style: { paddingTop: 0 } },
         h('p', { class: 'small', style: { margin: '0 0 8px', color: 'var(--ink-2)' } }, h('b', null, 'Цитата: '), `«${r.quote}»`),
-        fs.map((f) => findingCard(f)))));
+        fs.map((f) => findingCard(f)),
+        linked.length ? h('div', { class: 'small', style: { padding: '12px 0' } }, h('span', { class: 'muted' }, 'Связано с другими требованиями (вкладка «Набор целиком»): '),
+          linked.map((f, i) => [i ? ', ' : '', h('button', { type: 'button', class: 'btn-link', style: { minHeight: 0 }, onclick: (e) => { e.stopPropagation(); ui.tab = 'doc'; ui.sev = 'all'; ui.crit = 'all'; ui.sel = f.id; draw(f.id); } }, `${f.id} ${f.title}`)])) : null)));
     }
     return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px' } },
       h('p', { class: 'muted', style: { margin: 0 } }, 'Как агент нарезал документ: ID в отчёте, ID в документе и краткая формулировка. Если номера в документе не было — агент присвоил свой и сохранил цитату.'),
@@ -707,12 +709,17 @@ async function viewResult(run) {
           fixFirst.map((f) => h('li', null, h('button', { type: 'button', class: 'btn-link', style: { minHeight: 0, fontSize: '16px', textAlign: 'left' }, onclick: () => { ui.tab = 'doc'; ui.sev = 'all'; ui.crit = 'all'; ui.sel = f.id; draw(f.id); } }, `${f.id} — ${f.title}`),
             f.fix ? h('div', { class: 'small muted' }, f.fix) : null)))) : null,
       (res.warnings || []).length ? h('div', { class: 'note' }, h('b', null, 'Предупреждения прогона: '), res.warnings.map((w) => w.message).join('; ')) : null,
-      h('div', { class: 'row' }, h('a', { class: 'btn-ghost', href: `/api/runs/${run.id}/report.md`, target: '_blank', rel: 'noopener' }, 'Открыть report.md'),
-        h('a', { class: 'btn-ghost', href: `/api/runs/${run.id}/result`, target: '_blank', rel: 'noopener' }, 'JSON результата')));
+      h('div', { class: 'row' }, h('a', { class: 'btn-ghost', href: `/api/runs/${run.id}/report.md`, target: '_blank', rel: 'noopener' }, 'Открыть report.md')));
   }
 
   draw();
   render(root);
+}
+
+const narrow = () => window.matchMedia('(max-width: 720px)').matches;
+// «Часть A → Требования к изменениям → Функциональные требования → Ф-2» → «Функциональные требования → Ф-2»
+function shortLocation(loc) {
+  return loc ? String(loc).split(' → ').slice(-2).join(' → ') : '';
 }
 
 function resultHead(res, run) {
@@ -727,7 +734,8 @@ function resultHead(res, run) {
   const gl = res.passport.gitlab;
   return h('div', { class: 'res-head' },
     h('div', { class: 'l' },
-      h('span', { class: 'eyebrow grey' }, [res.passport.file_name, gl ? `${gl.project}@${gl.ref}` : null, fmtDate(res.passport.date || run.finished_at)].filter(Boolean).join(' · ')),
+      h('span', { class: 'eyebrow grey' }, [res.passport.file_name, gl ? `${gl.project}@${gl.ref}` : null, fmtDate(res.passport.date || run.finished_at),
+        `${res.summary.requirements_total} ${plural(res.summary.requirements_total, 'требование', 'требования', 'требований')}`].filter(Boolean).join(' · ')),
       h('h1', { class: 'h1' }, res.passport.document_title),
       h('p', null, v.text || '')),
     h('div', { class: 'r' },
@@ -856,18 +864,12 @@ async function viewHistory() {
   async function draw() {
     let items;
     try { items = await api('/api/runs'); } catch (e) { fill(root, notFound('Не удалось загрузить историю', e.message)); return; }
-    const notReady = items.filter((r) => r.verdict === 'not_ready').length;
     const running = items.filter((r) => r.status === 'running' || r.status === 'queued').length;
     fill(root, 
       h('div', { class: 'res-head' },
         h('div', { class: 'l' }, h('span', { class: 'greenbar' }), h('h1', { class: 'h1' }, 'История проверок'),
           h('p', null, 'Все проверки ТЗ этого сервиса. Запуски хранятся в памяти и пропадают после перезапуска сервера — скачивайте отчёты.')),
         h('div', { class: 'r' }, h('a', { class: 'btn', href: '#/' }, svg('M12 5v14M5 12h14', 20), 'Проверить ТЗ'))),
-      h('div', { class: 'tiles' },
-        h('div', { class: 'tile static' }, h('b', null, String(items.length)), h('span', null, 'проверок всего')),
-        h('div', { class: 'tile static' }, h('b', { class: 'sev-critical' }, String(notReady)), h('span', null, 'не готовы к разработке')),
-        h('div', { class: 'tile static' }, h('b', null, String(running)), h('span', null, 'идёт проверка')),
-        h('div', { class: 'tile static' }, h('b', null, String(state.projects.filter((p) => p.status === 'ready').length)), h('span', null, 'проектов GitLab'))),
       items.length ? h('div', { class: 'paper tbox', style: { padding: '8px 32px' } }, h('table', { class: 'data', style: { minWidth: '960px' } },
         h('thead', null, h('tr', null, ['Документ', 'Проект GitLab', 'Дата', 'Вердикт', 'Дефекты', ''].map((t) => h('th', { scope: 'col' }, t || h('span', { class: 'sr' }, 'Действия'))))),
         h('tbody', null, items.map(historyRow))))
@@ -969,7 +971,7 @@ async function viewGitlab() {
     const connCards = conns.map((c) => {
       const sIn = h('input', { type: 'search', placeholder: 'Найти проект', value: ui.search[c.id] || '', 'aria-label': 'Поиск проекта' });
       const list = h('div', { class: 'plist' });
-      const fill = (items) => fill(list, ...(items.length ? items.map((p) => {
+      const showProjects = (items) => fill(list, ...(items.length ? items.map((p) => {
         const added = state.projects.some((x) => x.connection_id === c.id && x.gitlab_id === p.gitlab_id);
         return h('div', { class: 'it' }, h('span', null, h('span', { class: 'mono small' }, p.path), h('div', { class: 'small muted' }, p.default_branch || 'пустой репозиторий')),
           added ? h('span', { class: 'pill ok' }, 'подключён') : h('button', { type: 'button', class: 'btn-ghost', onclick: async (e) => {
@@ -980,11 +982,11 @@ async function viewGitlab() {
       }) : [h('div', { class: 'small muted', style: { padding: '12px 0' } }, 'Проектов не найдено.')]));
       const search = async () => {
         ui.search[c.id] = sIn.value; fill(list, h('div', { class: 'small muted', style: { padding: '12px 0' } }, h('span', { class: 'spin' }), ' Загружаем проекты…'));
-        try { ui.results[c.id] = await api(`/api/gitlab/connections/${c.id}/projects?search=${encodeURIComponent(sIn.value)}`); fill(ui.results[c.id]); }
+        try { ui.results[c.id] = await api(`/api/gitlab/connections/${c.id}/projects?search=${encodeURIComponent(sIn.value)}`); showProjects(ui.results[c.id]); }
         catch (x) { fill(list, h('div', { class: 'formerr', style: { padding: '12px 0' } }, x.message)); }
       };
       sIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
-      if (ui.results[c.id]) fill(ui.results[c.id]); else search();
+      if (ui.results[c.id]) showProjects(ui.results[c.id]); else search();
       return h('div', { class: 'paper card' },
         h('div', { class: 'proj-head' }, h('span', null, h('b', null, c.url), h('div', { class: 'small muted' }, `пользователь ${c.username}`)),
           h('button', { type: 'button', class: 'btn-ghost btn-danger', onclick: async () => {
@@ -996,7 +998,7 @@ async function viewGitlab() {
         list);
     });
 
-    const projCards = state.projects.map((p) => h('div', { class: 'paper proj' },
+    const projCards = () => state.projects.map((p) => h('div', { class: 'paper proj' },
       h('div', { class: 'proj-head' },
         h('span', null, h('a', { href: p.web_url, target: '_blank', rel: 'noopener', class: 'mono', style: { fontSize: '17px', fontWeight: 500, color: 'var(--ink)' } }, p.path),
           h('div', { class: 'small muted' }, `ветка по умолчанию ${p.default_branch}${p.synced_at ? ' · синхронизирован ' + fmtDate(p.synced_at) : ''}`)),
@@ -1010,16 +1012,25 @@ async function viewGitlab() {
         h('button', { type: 'button', class: 'btn-ghost', disabled: p.status === 'indexing', onclick: async () => { await api(`/api/gitlab/projects/${p.id}/sync`, { method: 'POST' }).catch((x) => toast(x.message)); await load(); draw(); } }, 'Синхронизировать'),
         h('button', { type: 'button', class: 'btn-ghost btn-danger', onclick: async () => { await api(`/api/gitlab/projects/${p.id}`, { method: 'DELETE' }); await load(); draw(); } }, 'Убрать'))));
 
-    fill(root, 
+    const mainEl = h('div', { class: 'main' });
+    fill(root,
       h('div', { class: 'res-head' }, h('div', { class: 'l' }, h('span', { class: 'greenbar' }), h('h1', { class: 'h1' }, 'Проекты GitLab'),
         h('p', null, 'Агент сверяет ТЗ с кодом: методы REST-контроллеров и DTO, OpenAPI, схему БД и миграции, README. Только чтение — агент не меняет код и не создаёт merge request.'))),
       h('div', { class: 'gl-grid' },
         h('div', { class: 'side' }, form, connCards),
-        h('div', { class: 'main' }, h('h2', { class: 'h3' }, `Подключённые проекты · ${state.projects.length}`),
-          projCards.length ? projCards : h('div', { class: 'paper card' }, h('b', null, 'Пока ни одного проекта.'),
-            h('span', { class: 'muted' }, conns.length ? 'Выберите проект в списке слева.' : 'Подключите GitLab слева, затем выберите проект.')))));
+        mainEl));
+    // опрос индексации перерисовывает только список проектов — форма с токеном не трогается
+    const projectsPanel = () => [h('h2', { class: 'h3' }, `Подключённые проекты · ${state.projects.length}`),
+      state.projects.length ? projCards() : h('div', { class: 'paper card' }, h('b', null, 'Пока ни одного проекта.'),
+        h('span', { class: 'muted' }, conns.length ? 'Выберите проект в списке слева.' : 'Подключите GitLab слева, затем выберите проект.'))];
+    fill(mainEl, projectsPanel());
     if (state.projects.some((p) => p.status === 'indexing')) {
-      clearTimers(); every(1500, async () => { await load(); if (!state.projects.some((p) => p.status === 'indexing')) { clearTimers(); } draw(); });
+      clearTimers();
+      every(1500, async () => {
+        await loadProjects();
+        fill(mainEl, projectsPanel());
+        if (!state.projects.some((p) => p.status === 'indexing')) clearTimers();
+      });
     }
   }
   await load();

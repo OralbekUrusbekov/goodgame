@@ -24,8 +24,9 @@
   --minor: #4A4A4F;
   --minor-bg: #E7EDEB;
   --shadow: 0 1px 2px rgba(17,17,17,0.04), 0 18px 40px rgba(15,40,65,0.08);
-  --sans: 'Suisse Intl', Onest, Arial, Helvetica, sans-serif;
-  --mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+  /* без внешних шрифтов: во внутренней сети Google Fonts может быть закрыт; замена по брендбуку — Arial */
+  --sans: "Suisse Int'l", 'Suisse Intl', Arial, Helvetica, sans-serif;
+  --mono: Consolas, 'Cascadia Mono', Menlo, 'Courier New', monospace;
 }
 
 * { box-sizing: border-box; }
@@ -85,7 +86,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 
 /* paper */
 .paper { background: var(--paper); border: 1px solid var(--line-2); box-shadow: var(--shadow); }
-.sheet { min-height: 560px; padding: 56px 64px; position: relative; display: flex; flex-direction: column; gap: 28px; }
+.sheet { min-height: 480px; padding: 56px 64px; position: relative; display: flex; flex-direction: column; gap: 28px; }
 .rules { display: flex; flex-direction: column; gap: 22px; }
 .rules span { display: block; height: 1px; background: var(--line-2); }
 
@@ -230,7 +231,9 @@ details.more[open] > summary::before { content: '−'; }
 .fcard { border-bottom: 1px solid var(--line-3); padding: 20px 0; display: flex; gap: 16px; }
 .fcard .num { flex: none; width: 34px; height: 34px; color: #fff; font-family: var(--mono); font-size: 14px; display: flex; align-items: center; justify-content: center; }
 .fcard .body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.fcard .meta { font-size: 13px; color: var(--ink-3); }
 .fcard .sev { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.sheet.parsed { min-height: 0; padding: 40px 48px; gap: 18px; }
 .fcard .tt { font-size: 19px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
 .fcard .tx { font-size: 15px; line-height: 1.55; color: var(--ink-2); margin: 0; }
 .fcard .fix { font-size: 15px; line-height: 1.55; padding-left: 12px; border-left: 3px solid var(--green); margin: 0; }
@@ -302,7 +305,19 @@ table.data .id { font-family: var(--mono); font-size: 14px; white-space: nowrap;
   .split, .stack { padding-top: 32px; gap: 32px; }
   .sheet { padding: 32px 24px; min-height: 420px; }
   .errcard { padding: 32px 24px; min-height: 0; }
-  .doc { padding: 28px 20px; position: static; max-height: none; }
+  /* телефон: сначала замечания, текст ТЗ — в окне с собственной прокруткой */
+  .doc-split { gap: 24px; }
+  .margin { order: -1; }
+  .doc { padding: 24px 18px; position: static; max-height: 70vh; }
+  .intake-left .lead, .intake-left .numlist { display: none; }
+  .intake-left { gap: 14px; padding-top: 0; }
+  .display { font-size: 40px; }
+  .split { gap: 24px; }
+  .stamp b { font-size: 18px; }
+  .res-head .r { gap: 16px; }
+  .tile { flex: 1 1 40%; padding: 12px 14px; }
+  .tile b { font-size: 28px; }
+  .sentence { font-size: 18px; }
   .crit-row { grid-template-columns: 1fr; }
   .kv { grid-template-columns: 1fr; }
   .kv > div:nth-child(odd) { padding-bottom: 0; border-bottom: 0; }
