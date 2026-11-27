@@ -5,6 +5,7 @@ from dataclasses import asdict
 from datetime import datetime
 import json
 from pathlib import Path
+import os
 import subprocess
 
 from . import __version__
@@ -26,6 +27,10 @@ SEVERITY_RU = {"critical": "критический", "major": "существе�
 
 
 def agent_version(root: Path | None = None) -> str:
+    # В контейнере нет .git: коммит передаётся при сборке (Dockerfile ARG GIT_COMMIT).
+    commit_env = os.getenv("AGENT_COMMIT", "").strip()
+    if commit_env and commit_env != "unknown":
+        return f"{__version__}+{commit_env}"
     try:
         cwd = root or Path.cwd()
         commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=cwd, capture_output=True, text=True, check=True).stdout.strip()

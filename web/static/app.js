@@ -587,7 +587,7 @@ async function viewResult(run) {
     return h('div', null,
       h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'Разделы отчёта' }, tabs.map(([id, label, cnt], index) => h('button', {
         type: 'button', role: 'tab', id: `tab-${id}`, 'aria-controls': `panel-${id}`, 'aria-selected': String(ui.tab === id),
-        tabindex: ui.tab === id ? '0' : '-1', onclick: () => { ui.tab = id; draw(); }, onkeydown: (e) => {
+        tabindex: ui.tab === id ? '0' : '-1', onclick: () => activate(id), onkeydown: (e) => {
           const current = tabs.findIndex((item) => item[0] === id);
           const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : e.key === 'ArrowLeft' ? (current - 1 + tabs.length) % tabs.length : e.key === 'ArrowRight' ? (current + 1) % tabs.length : -1;
           if (next >= 0) { e.preventDefault(); activate(tabs[next][0]); }

@@ -1,6 +1,8 @@
 FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOME=/tmp WEB_UPLOAD_DIR=/tmp/uploads
 WORKDIR /app
+ARG GIT_COMMIT=unknown
+ENV AGENT_COMMIT=$GIT_COMMIT
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
