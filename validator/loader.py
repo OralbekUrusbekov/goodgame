@@ -19,21 +19,32 @@ class Document:
     text: str
     lines: tuple[SourceLine, ...]
 
-    def location_for(self, quote: str) -> str:
+    def _matching_lines(
+        self, quote: str, context: str = "", section: str | None = None
+    ) -> list[SourceLine]:
         needle = _normalize(quote)
+        matches = []
         for line in self.lines:
             candidate = _normalize(line.text)
             if needle and candidate and (needle in candidate or candidate in needle):
-                return f"{line.section}, строка {line.number}"
-        return "Раздел не определён"
+                matches.append(line)
+        if len(matches) <= 1:
+            return matches
+        context_tokens = set(_normalize(context).split())
+        short = len(quote.strip()) < 12
+        return sorted(matches, key=lambda line: (
+            0 if section and line.section == section else 1,
+            -len(context_tokens & set(_normalize(line.text).split())) if short or context else 0,
+            line.number,
+        ))
 
-    def line_for(self, quote: str) -> int | None:
-        needle = _normalize(quote)
-        for line in self.lines:
-            candidate = _normalize(line.text)
-            if needle and candidate and (needle in candidate or candidate in needle):
-                return line.number
-        return None
+    def location_for(self, quote: str, context: str = "", section: str | None = None) -> str:
+        matches = self._matching_lines(quote, context=context, section=section)
+        return f"{matches[0].section}, строка {matches[0].number}" if matches else "Раздел не определён"
+
+    def line_for(self, quote: str, context: str = "", section: str | None = None) -> int | None:
+        matches = self._matching_lines(quote, context=context, section=section)
+        return matches[0].number if matches else None
 
 
 def _normalize(value: str) -> str:

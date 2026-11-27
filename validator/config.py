@@ -19,6 +19,7 @@ class Settings:
     openai_base_url: str | None = None
     cache_enabled: bool = True
     llm_fallback: str = ""
+    llm_concurrency: int = 2
 
 
 def _batch_size(value: int | str | None) -> int:
@@ -91,4 +92,5 @@ def load_config(
         openai_base_url=os.getenv("OPENAI_BASE_URL"),
         cache_enabled=_bool_env("LLM_CACHE", True) if cache_enabled is None else cache_enabled,
         llm_fallback=fallback,
+        llm_concurrency=_positive_int_env("LLM_CONCURRENCY", 2),
     )

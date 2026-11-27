@@ -10,6 +10,7 @@ import random
 import re
 import sys
 import time
+import threading
 from typing import Any, Callable
 
 from .config import Settings
@@ -132,6 +133,14 @@ def parse_retry_delay(message: str) -> float | None:
         flags=re.IGNORECASE,
     )
     return float(match.group(1)) if match else None
+
+
+def _quota_wait_seconds(message: str) -> float | None:
+    delay = parse_retry_delay(message)
+    if delay is not None:
+        return delay
+    hours = re.search(r"~?([0-9]+(?:\.[0-9]+)?)\s*ч\b", message, flags=re.IGNORECASE)
+    return float(hours.group(1)) * 3600 if hours else None
 
 
 def _max_retry_delay() -> float:
@@ -481,6 +490,7 @@ class ProviderRouter(LLMProvider):
         self.cache_hits = 0
         self.requests = 0
         self.models_by_step: dict[str, list[str]] = {}
+        self._state_lock = threading.Lock()
 
     @staticmethod
     def _fallback_error(error: Exception) -> bool:
@@ -497,30 +507,40 @@ class ProviderRouter(LLMProvider):
     def generate_json(
         self, system: str, user: str, schema: JSONSchema | None = None, operation: str = "llm"
     ) -> dict[str, Any]:
-        self.requests += 1
+        with self._state_lock:
+            self.requests += 1
         last_error: Exception | None = None
-        for index in range(self.current, len(self.providers)):
+        quota_errors: list[tuple[LLMProvider, Exception]] = []
+        with self._state_lock:
+            start_index = self.current
+        for index in range(start_index, len(self.providers)):
             provider = self.providers[index]
             key = self.cache.key(provider.name, provider.model, system, user, schema)
             cached = self.cache.get(key)
             if cached is not None:
-                self.cache_hits += 1
-                self.current = index
-                self.name, self.model = provider.name, provider.model
-                self.models_by_step.setdefault(operation, []).append(f"{provider.name}:{provider.model} (кэш)")
+                with self._state_lock:
+                    self.cache_hits += 1
+                    self.current = index
+                    self.name, self.model = provider.name, provider.model
+                    self.models_by_step.setdefault(operation, []).append(f"{provider.name}:{provider.model} (кэш)")
                 return cached
             try:
-                self.calls += 1
+                with self._state_lock:
+                    self.calls += 1
                 result = provider.generate_json(system, user, schema=schema, operation=operation)
                 self.cache.put(key, result)
-                self.current = index
-                self.name, self.model = provider.name, provider.model
-                self.models_by_step.setdefault(operation, []).append(f"{provider.name}:{provider.model}")
+                with self._state_lock:
+                    self.current = index
+                    self.name, self.model = provider.name, provider.model
+                    self.models_by_step.setdefault(operation, []).append(f"{provider.name}:{provider.model}")
                 return result
             except Exception as error:
                 last_error = error
-                if not self._fallback_error(error) or index + 1 >= len(self.providers):
+                if not self._fallback_error(error):
                     raise
+                quota_errors.append((provider, error))
+                if index + 1 >= len(self.providers):
+                    break
                 next_provider = self.providers[index + 1]
                 print(
                     f"[validator] fallback: {provider.name}:{provider.model} → "
@@ -528,7 +548,16 @@ class ProviderRouter(LLMProvider):
                     file=sys.stderr,
                     flush=True,
                 )
-                self.current = index + 1
+                with self._state_lock:
+                    self.current = max(self.current, index + 1)
+        if quota_errors and len(quota_errors) == len(self.providers) - start_index:
+            models = ", ".join(f"{provider.name}:{provider.model}" for provider, _ in quota_errors)
+            delays = [_quota_wait_seconds(str(error)) for _, error in quota_errors]
+            known = [delay for delay in delays if delay is not None]
+            wait = f"около {max(known):.0f} с" if known else "не указано провайдером"
+            raise RuntimeError(
+                f"Квота исчерпана у всех моделей: {models}. Время ожидания: {wait}."
+            ) from last_error
         if last_error:
             raise last_error
         raise RuntimeError("LLM-провайдеры недоступны")

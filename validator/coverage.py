@@ -36,6 +36,23 @@ def _template_row(text: str) -> bool:
     return len(cells) > 1 and all(not item or item == "—" or option.fullmatch(item) for item in cells[1:])
 
 
+def is_process_metadata(text: str, section: str = "") -> bool:
+    """Identify review/approval template rows that are not product requirements."""
+    normalized = normalize(f"{section} {text}")
+    process_section = bool(re.search(
+        r"\b(согласован|согласующ|подпис|ревью|review|approval|approver|чек лист|checklist)\w*\b",
+        normalized,
+    ))
+    choices = bool(re.search(
+        r"\b(?:да|yes)\b\s*(?:/|\||,|;|или)\s*\b(?:нет|no)\b", normalized
+    )) and bool(re.search(r"не требуется|n/?a|not required", normalized))
+    cells = [item.strip() for item in text.strip("|").split("|")]
+    approval_columns = len(cells) >= 2 and any(re.search(
+        r"роль|фио|имя|подпис|дата|role|name|signature|approver", normalize(cell)
+    ) for cell in cells)
+    return choices or (process_section and (text.lstrip().startswith("|") or approval_columns))
+
+
 def extract_units(document: Document) -> tuple[list[SourceUnit], list[SkippedUnit]]:
     lines = document.text.splitlines(keepends=True)
     units: list[SourceUnit] = []
@@ -83,6 +100,8 @@ def extract_units(document: Document) -> tuple[list[SourceUnit], list[SkippedUni
             flush_paragraph()
             if re.match(r"^\|?\s*:?-+", stripped) or re.match(r"^\|?\s*:?-+", next_line):
                 pass
+            elif is_process_metadata(stripped, section):
+                skipped.append(SkippedUnit(stripped, section, "процессные метаданные ревью/согласования"))
             elif _template_row(stripped):
                 skipped.append(SkippedUnit(stripped, section, "пустая или шаблонная строка таблицы"))
             else:
@@ -90,7 +109,9 @@ def extract_units(document: Document) -> tuple[list[SourceUnit], list[SkippedUni
         elif re.match(r"^(?:[-*+]\s+|\d+[.)]\s+)", stripped):
             flush_paragraph()
             text = re.sub(r"^(?:[-*+]\s+|\d+[.)]\s+)", "", stripped).strip()
-            if text:
+            if text and is_process_metadata(text, section):
+                skipped.append(SkippedUnit(text, section, "процессные метаданные ревью/согласования"))
+            elif text:
                 units.append(SourceUnit(text, section, position))
         else:
             if not paragraph:

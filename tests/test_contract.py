@@ -221,3 +221,71 @@ def test_gitlab_context_is_forwarded_and_temporary_directories_removed(
     assert finding["scope"] == "code"
     assert finding["code_ref"]["path"] == "src/api.py"
     assert finding["code_ref"]["url"].endswith("src/api.py#L1")
+
+
+def test_unverified_findings_are_separate_and_do_not_affect_verdict() -> None:
+    payload = _contract_payload("Да")
+    payload["requirement_checks"][0]["findings"][1]["quote"] = "цитаты в документе нет"
+
+    result = to_contract(payload, "# Отчёт\n", "# API\n\nREST type: GET\n", "api.md", {})
+
+    assert len(result["unverified_findings"]) == 1
+    assert result["passport"]["dropped_findings"] == 1
+    assert result["summary"]["by_severity"]["critical"] == 0
+    assert result["verdict"]["status"] == "ready"
+    assert result["unverified_findings"][0]["id"] not in result["verdict"]["fix_first"]
+
+
+def test_duplicate_findings_merge_criteria_and_decision_fix_becomes_choice() -> None:
+    payload = _payload_with_table_quote()
+    base = payload["requirement_checks"][0]["findings"][0]
+    base.update({"criterion": "complete", "criteria": ["complete"], "fix_kind": "decision",
+                 "explanation": "Не описан ответ метода.", "fix": "выбрать 200 или 201"})
+    payload["requirement_checks"][0]["findings"].append({
+        **base, "criterion": "verifiable", "criteria": ["verifiable"],
+        "explanation": "Не описан ответ метода однозначно.",
+    })
+
+    result = to_contract(payload, "# Отчёт\n", "REST type: GET", "api.md", {})
+
+    assert len(result["findings"]) == 1
+    assert set(result["findings"][0]["criteria"]) == {"29148.complete", "29148.verifiable"}
+    assert result["findings"][0]["question"].startswith("Какой вариант выбирает владелец:")
+
+
+def test_partial_result_error_becomes_partial_contract(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = tmp_path / "partial.md"
+    source.write_text("# API\n\nREST type: GET\n", encoding="utf-8")
+
+    class Partial(Exception):
+        payload = _payload_with_table_quote()
+        report_markdown = "# Частичный отчёт\n"
+        stage = "checking_set"
+        cause = RuntimeError("квота исчерпана")
+
+    monkeypatch.setattr(contract, "_run_agent", lambda *args, **kwargs: (_ for _ in ()).throw(Partial()))
+    result = run_pipeline(str(source))
+
+    assert result["partial"] is True
+    assert result["partial_error"] == {"stage": "checking_set", "reason": "квота исчерпана"}
+    assert any(warning["code"] == "partial_result" for warning in result["warnings"])
+
+
+def test_pipeline_forwards_model_and_no_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = tmp_path / "settings.md"
+    source.write_text("# API\n\nREST type: GET\n", encoding="utf-8")
+    captured = {}
+
+    def fake_config(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    def fake_agent(doc_path, destination, settings, **kwargs):
+        Path(destination).write_text("# Отчёт\n", encoding="utf-8")
+        return SimpleNamespace(report_path=Path(destination), payload=_payload_with_table_quote())
+
+    monkeypatch.setattr(contract, "load_config", fake_config)
+    monkeypatch.setattr(contract, "_run_agent", fake_agent)
+    run_pipeline(str(source), options={"model": "model-a", "no_cache": True})
+
+    assert captured == {"model": "model-a", "cache_enabled": False}

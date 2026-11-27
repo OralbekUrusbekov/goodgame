@@ -31,6 +31,7 @@ _MANDATORY_PART = re.compile(
     re.IGNORECASE,
 )
 _TABLE_SEPARATOR = re.compile(r"^\s*\|?\s*:?-{3,}")
+_TESTING = re.compile(r"тестирован|испытан|test(?:ing)?", re.IGNORECASE)
 
 
 def _table_cells(value: str) -> list[str] | None:
@@ -115,7 +116,17 @@ def find_placeholder_findings(document: Document) -> list[Finding]:
         primary = entries[0][0]
         quotes = [line.text.strip() for line, _ in entries]
         kinds = list(dict.fromkeys(kind for _, labels in entries for kind in labels))
-        critical = any(_is_mandatory(line) for line, _ in entries)
+        # An empty testing section blocks verification of implementation.
+        # Version/approval/review checklists are important process metadata,
+        # but do not by themselves block a concrete product scenario.
+        critical = bool(_TESTING.search(section)) and any(
+            "пустой обязательный раздел" in labels or any(
+                marker in label
+                for label in labels
+                for marker in ("заполнить позднее", "незаполненное")
+            )
+            for _, labels in entries
+        )
         severity = "critical" if critical else "major"
         explanation = (
             f"Раздел содержит незаполненные элементы шаблона ({', '.join(kinds)}); "

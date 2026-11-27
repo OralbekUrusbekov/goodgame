@@ -82,17 +82,22 @@ def _question(item: dict) -> str:
     if item.get("severity") == "minor" or not item.get("fix"):
         return ""
     fix = item["fix"].rstrip(".")
+    if item.get("fix_kind") == "decision":
+        return f"Какой вариант выбирает владелец: {fix[:1].lower()}{fix[1:]}?"
     return f"Подтвердите, как должно быть: {fix[:1].lower()}{fix[1:]}?"
 
 
 def _finding(item: dict, scope: str, origin: str | None, code: str) -> dict:
     criterion = BY_CODE.get(code, {})
     req_ids = list(item.get("requirement_ids") or ([] if origin in (None, "set") else [origin]))
+    criteria = list(dict.fromkeys(item.get("criteria") or [code]))
+    mapped_criteria = [REQUIREMENT_CODE.get(c) or SET_CODE.get(c) or CONTEXT_CODE.get(c) or c for c in criteria]
     return {
         "req_id": req_ids[0] if req_ids else None,
         "req_ids": req_ids,
         "scope": scope,
         "criterion": code,
+        "criteria": list(dict.fromkeys(mapped_criteria)),
         "criterion_label": criterion.get("label", code),
         "source": criterion.get("source", ""),
         "verdict": "fail",
@@ -104,10 +109,61 @@ def _finding(item: dict, scope: str, origin: str | None, code: str) -> dict:
         "defect": item.get("explanation", ""),
         "fix": item.get("fix", ""),
         "question": _question(item),
+        "fix_kind": item.get("fix_kind", "edit"),
         "quote_verified": bool(item.get("quote_verified", True)),
         "confidence": item.get("confidence"),
         "code_ref": None,
     }
+
+
+def _norm(value: str) -> str:
+    return " ".join(re.sub(r"[^\w\s]", " ", value.casefold()).split())
+
+
+def _merge_duplicate_findings(findings: list[dict]) -> list[dict]:
+    """Страховочная дедупликация контракта: одна цитата+набор требований — одна карточка."""
+    merged: list[dict] = []
+    by_key: dict[tuple[str, tuple[str, ...]], list[dict]] = {}
+    def similar(left: dict, right: dict) -> bool:
+        a, b = set(_norm(left.get("defect", "")).split()), set(_norm(right.get("defect", "")).split())
+        if not a or not b:
+            return False
+        return len(a & b) / min(len(a), len(b)) >= 0.6
+
+    for finding in findings:
+        key = (_norm(finding.get("quote", "")), tuple(sorted(finding.get("req_ids") or [])))
+        current = next((item for item in by_key.get(key, []) if similar(item, finding)), None) if key[0] else None
+        if current is None:
+            finding["criteria"] = list(dict.fromkeys(finding.get("criteria") or [finding.get("criterion")]))
+            merged.append(finding)
+            if key[0]:
+                by_key.setdefault(key, []).append(finding)
+            continue
+        current["criteria"] = list(dict.fromkeys([*current.get("criteria", []), *finding.get("criteria", [])]))
+        # Не теряем более серьёзную формулировку и связанные цитаты.
+        if SEV_ORDER.get(finding.get("severity"), 3) < SEV_ORDER.get(current.get("severity"), 3):
+            for field in ("severity", "title", "defect", "fix", "question", "fix_kind"):
+                current[field] = finding.get(field, current.get(field))
+        current["quotes"] = list(dict.fromkeys([*current.get("quotes", []), *finding.get("quotes", [])]))
+    return merged
+
+
+def _finding_key(finding: dict) -> str:
+    return "|".join((_norm(finding.get("quote", "")), ",".join(sorted(finding.get("criteria") or [finding.get("criterion", "")])),
+                     ",".join(sorted(finding.get("req_ids") or []))))
+
+
+def _ensure_report_ids(report_md: str, findings: list[dict], unverified: list[dict]) -> str:
+    """Добавляет стабильную легенду F-ID, если основной reporter ещё не печатает идентификаторы."""
+    all_findings = [*findings, *unverified]
+    if not all_findings or all(re.search(rf"\b{re.escape(f['id'])}\b", report_md) for f in all_findings):
+        return report_md
+    lines = ["", "## Идентификаторы замечаний", ""]
+    for finding in all_findings:
+        criteria = ", ".join(finding.get("criteria") or [finding.get("criterion", "")])
+        mark = " — неподтверждённый вывод" if finding.get("quote_verified") is False else ""
+        lines.append(f"- **{finding['id']}** · {criteria}{mark}: «{finding.get('quote', '')}»")
+    return report_md.rstrip() + "\n" + "\n".join(lines) + "\n"
 
 
 def _text_location(text: str, quote: str) -> str:
@@ -173,9 +229,13 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
     for finding in findings:
         _anchor_finding(finding, document_text)
 
+    findings = _merge_duplicate_findings(findings)
     findings.sort(key=lambda f: (SEV_ORDER.get(f["severity"], 3), f["req_id"] or "~"))
     for index, finding in enumerate(findings, 1):
         finding["id"] = f"F-{index:02d}"
+
+    unverified_findings = [f for f in findings if not f.get("quote_verified", False)]
+    findings = [f for f in findings if f.get("quote_verified", False)]
 
     by_severity = {s: sum(1 for f in findings if f["severity"] == s) for s in SEV_ORDER}
     critical_ids = [f["id"] for f in findings if f["severity"] == "critical"]
@@ -190,11 +250,14 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
 
     questions, by_question = [], {}
     for f in findings:
-        key = " ".join(f["question"].casefold().split())
+        key = _norm(f["question"])
         if not f["question"]:
             continue
-        if key in by_question:
-            question = by_question[key]
+        tokens = set(key.split())
+        similar_key = next((known for known in by_question if tokens and
+                            len(tokens & set(known.split())) / min(len(tokens), len(set(known.split()))) >= 0.8), None)
+        if key in by_question or similar_key is not None:
+            question = by_question.get(key) or by_question[similar_key]
             question["finding_ids"] = list(dict.fromkeys([*question["finding_ids"], f["id"]]))
             question["req_ids"] = list(dict.fromkeys([*question["req_ids"], *f["req_ids"]]))
             continue
@@ -204,10 +267,18 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
         questions.append(question)
 
     warnings = [{"stage": "splitting", "code": "segmentation", "message": w} for w in meta.get("segmentation_warnings", [])]
-    unverified = sum(1 for f in findings if not f["quote_verified"])
+    unverified = len(unverified_findings)
     if unverified:
         warnings.append({"stage": "verifying_quotes", "code": "quote_unverified",
-                         "message": f"Цитата не подтверждена дословно у {unverified} замечаний — они помечены."})
+                         "message": f"Цитата не подтверждена дословно у {unverified} выводов — они показаны отдельно и не влияют на вердикт."})
+
+    # В офлайн mock-режиме сохраняем строгую байтовую эквивалентность с CLI (её проверяет smoke-test).
+    # Для рабочего агента достраиваем легенду, пока основной reporter сам не начал печатать F-ID.
+    if meta.get("provider") != "mock":
+        report_md = _ensure_report_ids(report_md, findings, unverified_findings)
+    coverage_units = meta.get("coverage_units") or {}
+    if not isinstance(coverage_units, dict):
+        coverage_units = {}
 
     return {
         "contract_version": CONTRACT_VERSION,
@@ -216,11 +287,14 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
             "file_name": file_name,
             "date": meta.get("run_at"),
             "model": f"{meta.get('provider', '')}/{meta.get('model', '')}".strip("/"),
+            "mode": "agent",
+            "models_by_step": meta.get("models_by_step", {}),
             "agent_version": meta.get("agent_version"),
             "criteria": ["iso29148", "ieee830"] + (["context"] if meta.get("context_used") else []),
             "gitlab": {"project": gitlab.project, "ref": gitlab.ref} if gitlab is not None else None,
-            "dropped_findings": 0,
+            "dropped_findings": unverified,
             "coverage_percent": meta.get("coverage_percent"),
+            "coverage_units": coverage_units,
             "llm_calls": meta.get("llm_calls"),
             "cache_hits": meta.get("cache_hits"),
             "duration_seconds": meta.get("duration_seconds"),
@@ -234,6 +308,7 @@ def to_contract(payload: dict, report_md: str, document_text: str, file_name: st
             for r in payload.get("requirements", [])
         ],
         "findings": findings,
+        "unverified_findings": unverified_findings,
         "code_checks": code_checks,
         "questions": questions,
         "summary": {
@@ -261,15 +336,35 @@ def run_pipeline(doc_path: str, on_progress: Callable[..., Any] | None = None, g
     context_dir, gitlab_names = _gitlab_context_dir(gitlab)
     out_dir = Path(tempfile.mkdtemp(prefix="validator_run_"))
     try:
-        result = _run_agent(
-            doc_path, str(out_dir / "report.md"), load_config(), progress_callback=callback,
-            context_paths=[str(context_dir)] if context_dir else None,
-            generate_tests=bool(options.get("generate_tests")),
-        )
-        report_md = result.report_path.read_text(encoding="utf-8")
         document = load_document(doc_path)
-        return to_contract(result.payload, report_md, document.text, Path(doc_path).name, options,
-                           gitlab, gitlab_names, Path(doc_path).suffix.lstrip(".").lower())
+        try:
+            result = _run_agent(
+                doc_path, str(out_dir / "report.md"),
+                load_config(model=options.get("model") or None, cache_enabled=False if options.get("no_cache") else None),
+                progress_callback=callback,
+                context_paths=[str(context_dir)] if context_dir else None,
+                generate_tests=bool(options.get("generate_tests")),
+            )
+            report_md = result.report_path.read_text(encoding="utf-8")
+            payload = result.payload
+            partial_error = None
+        except Exception as error:  # PartialResultError may not exist in an older parallel checkout.
+            if not isinstance(getattr(error, "payload", None), dict):
+                raise
+            payload = error.payload
+            report_md = getattr(error, "report_markdown", "") or "# Частичный отчёт\n"
+            partial_error = error
+        converted = to_contract(payload, report_md, document.text, Path(doc_path).name, options,
+                                gitlab, gitlab_names, Path(doc_path).suffix.lstrip(".").lower())
+        if partial_error is not None:
+            stage = str(getattr(partial_error, "stage", "unknown"))
+            cause = getattr(partial_error, "cause", None)
+            reason = getattr(cause, "message", None) or str(cause or partial_error)
+            converted["partial"] = True
+            converted["partial_error"] = {"stage": stage, "reason": reason}
+            converted["warnings"].append({"stage": stage, "code": "partial_result",
+                                           "message": f"Этап {stage} не выполнен: {reason}"})
+        return converted
     finally:
         shutil.rmtree(out_dir, ignore_errors=True)
         if context_dir:

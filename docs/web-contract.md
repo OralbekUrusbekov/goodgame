@@ -1,7 +1,8 @@
 # Контракт «конвейер агента ↔ веб-сервис»
 
 Документ для автора агента (`validator/`). Веб (`web/`) вызывает конвейер **тем же кодом**, что и консоль,
-поэтому отчёт в браузере и `report.md` из CLI совпадают байт в байт.
+поэтому основа отчёта в браузере и `report.md` из CLI едина. Веб вправе дописать служебные секции
+с F-ID, сравнением прогонов и решениями ревьюера.
 
 Пока `validator.pipeline.run_pipeline` не существует, веб работает в **демо-режиме** (`web/mock_pipeline.py`)
 и отдаёт результат ровно этой формы. Как только функция появится — веб переключится на неё сам
@@ -15,7 +16,7 @@ def run_pipeline(
     doc_path: str,                     # путь к PDF / MD / DOCX
     on_progress=None,                  # callable(stage: str, info: dict | None)
     gitlab=None,                       # web.gitlab.GitLabContext | None — см. §4
-    options: dict | None = None,       # {"title", "work_type", "criteria": [...], "scopes": [...]}
+    options: dict | None = None,       # + {"model": "...", "no_cache": false}
 ) -> dict:                             # результат по схеме §3
     ...
 ```
@@ -60,6 +61,9 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
     "criteria": ["iso29148", "ieee830", "checklist", "fintech"],
     "gitlab": {"project": "retail/card-spend-alerts", "ref": "main"},  // или null
     "dropped_findings": 2                         // отброшено верификатором цитат
+    "mode": "agent", "models_by_step": {},
+    "llm_calls": 12, "cache_hits": 4, "duration_seconds": 42.1,
+    "coverage_units": {"covered": 18, "total": 20}
   },
   "document": {
     "text": "...полный извлечённый текст...",   // ВАЖНО: цитаты ищутся именно в нём
@@ -77,6 +81,7 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
       "req_id": "R-02",                 // null для находок по набору
       "scope": "requirement",           // requirement | set | code
       "criterion": "29148.consistent",  // код критерия
+      "criteria": ["29148.consistent"], // все критерии объединённого вывода
       "criterion_label": "Непротиворечивость",
       "source": "ISO/IEC/IEEE 29148:2018, п. 5.2.6",
       "verdict": "fail",                // pass | fail | n_a  (pass/n_a можно не присылать)
@@ -87,11 +92,13 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
       "location": "Часть A → Функциональные требования → Ф-2",
       "defect": "Ф-2 считает месяц по дате совершения, критерий приёмки 2 — по дате проведения.",
       "fix": "Выбрать одну дату и привести к ней Ф-2 и критерий приёмки.",
+      "fix_kind": "decision",           // edit | decision
       "question": "Какая дата определяет месяц расходов: совершения или проведения?",
       "quote_verified": true,
       "code_ref": null                  // для scope=code: {"path": "...", "line": 42, "url": "..."}
     }
   ],
+  "unverified_findings": [],             // та же форма; отдельно, не влияет на summary/verdict/questions
   "code_checks": [                       // вкладка «ТЗ ↔ код», пусто без GitLab
     {"item": "/alerts/saveLimit", "kind": "endpoint", "status": "match",   // match | mismatch | missing
      "doc_quote": "/alerts/saveLimit", "note": "найден в AlertsController.java",
@@ -114,6 +121,9 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
   },
   "warnings": [{"stage": "checking_gitlab", "code": "gitlab_401", "message": "..."}],
   "partial": false,                     // true, если прогон оборвался, но часть находок есть
+  "partial_error": {"stage": "checking_set", "reason": "quota"},
+  "traceability_matrix": [],
+  "test_cases": [],
   "report_markdown": "# Отчёт о проверке требований\n..."   // ровно то, что пишет CLI
 }
 ```
@@ -121,6 +131,13 @@ Path(report_path).write_text(result["report_markdown"], encoding="utf-8")
 Минимально обязательные поля: `passport`, `document.text`, `requirements`, `findings`
 (с `quote`, `severity`, `criterion`, `title`/`defect`), `verdict.status`, `report_markdown`.
 Остальное веб достроит сам (`summary`, `questions` — из находок).
+
+`quote_verified=false` обязательно исключается из `findings`, `summary`, `critical_ids`, `fix_first`,
+вопросов и вердикта и переносится в `unverified_findings`. Дубли с одной основной цитатой, одним набором
+`req_ids` и совпадающим смыслом объединяются; все их критерии сохраняются в `criteria`.
+
+Если агент выбрасывает `PartialResultError`, адаптер возвращает обычный результат с `partial=true`,
+сохраняет доступные требования/находки и добавляет предупреждение с этапом и причиной.
 
 ## 4. GitLab-контекст
 

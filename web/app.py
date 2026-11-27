@@ -7,14 +7,6 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 
-try:
-    from dotenv import load_dotenv
-
-    if os.getenv("LLM_PROVIDER") is None:
-        load_dotenv()
-except ImportError:  # pragma: no cover
-    pass
-
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -32,6 +24,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("web")
 
 STATIC = Path(__file__).parent / "static"
+DEFAULT_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
+
+
+def allowed_models() -> list[str]:
+    return [item.strip() for item in os.getenv("LLM_ALLOWED_MODELS", ",".join(DEFAULT_MODELS)).split(",") if item.strip()]
 app = FastAPI(title="bcc spec — проверка ТЗ", version=__version__, docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 
@@ -84,7 +81,8 @@ def meta():
         agent_version = None
     return {"web_version": __version__, "mode": mode, "model": model if mode == "agent" else "демо без LLM",
             "agent_version": agent_version, "max_upload_mb": MAX_BYTES // (1024 * 1024),
-            "formats": ["pdf", "docx", "md", "txt"], "scopes": SCOPES, **catalog()}
+            "formats": ["pdf", "docx", "md", "txt"], "allowed_models": allowed_models(),
+            "stage_timeout": int(os.getenv("WEB_STAGE_TIMEOUT", "900")), "scopes": SCOPES, **catalog()}
 
 
 @app.get("/api/criteria")
@@ -100,7 +98,7 @@ async def upload_document(file: UploadFile = File(...)):
     name = Path(file.filename or "document").name
     if not detect_format(name):
         return err(415, "format", "Этот формат агент не читает",
-                   "Поддерживаются PDF с текстовым слоем, DOCX и Markdown.")
+                   "Поддерживаются PDF с текстовым слоем, DOCX, Markdown и TXT.")
     data = await file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         return err(413, "size", "Файл больше 20 МБ", "Сохраните документ без изображений или разбейте его на части.")
@@ -132,6 +130,8 @@ class RunIn(BaseModel):
     gitlab_project_id: str | None = None
     ref: str | None = None
     scopes: list[str] = []
+    no_cache: bool = False
+    model: str | None = None
 
 
 def _create_run(body: RunIn):
@@ -145,7 +145,10 @@ def _create_run(body: RunIn):
         scopes = body.scopes or [s["id"] for s in SCOPES]
         gp = {"id": proj.id, "path": proj.path, "ref": ref, "scopes": scopes}
         factory = lambda: gl.context(proj.id, ref, scopes)  # noqa: E731
-    options = {"work_type": body.work_type, "criteria": body.criteria, "scopes": body.scopes}
+    if body.model and body.model not in allowed_models():
+        raise HTTPException(400, f"Модель не разрешена. Доступны: {', '.join(allowed_models())}")
+    options = {"work_type": body.work_type, "criteria": body.criteria, "scopes": body.scopes,
+               "no_cache": body.no_cache, "model": body.model}
     try:
         run = runs.create(body.upload_id, body.title.strip(), options, gp, factory)
     except KeyError:
@@ -161,14 +164,14 @@ def create_run(body: RunIn):
 @app.post("/api/runs/upload", status_code=201)
 async def create_run_multipart(file: UploadFile = File(...), title: str = Form(""), work_type: str = Form("Новый функционал"),
                                criteria: str = Form(""), gitlab_project_id: str = Form(""), ref: str = Form(""),
-                               scopes: str = Form("")):
+                               scopes: str = Form(""), no_cache: bool = Form(False), model: str = Form("")):
     """Вариант «одним запросом»: файл + параметры (для curl/интеграций)."""
     up = await upload_document(file)
     if isinstance(up, JSONResponse):
         return up
     body = RunIn(upload_id=up["upload_id"], title=title, work_type=work_type,
                  criteria=[c for c in criteria.split(",") if c], gitlab_project_id=gitlab_project_id or None,
-                 ref=ref or None, scopes=[s for s in scopes.split(",") if s])
+                 ref=ref or None, scopes=[s for s in scopes.split(",") if s], no_cache=no_cache, model=model or None)
     return {"run_id": _create_run(body).id}
 
 
@@ -223,7 +226,8 @@ def retry_run(run_id: str):
     body = RunIn(upload_id=old.upload_id, title=old.title, work_type=old.options.get("work_type", ""),
                  criteria=old.options.get("criteria", []),
                  gitlab_project_id=(old.gitlab_project or {}).get("id"), ref=(old.gitlab_project or {}).get("ref"),
-                 scopes=(old.gitlab_project or {}).get("scopes", []))
+                 scopes=(old.gitlab_project or {}).get("scopes", []), no_cache=old.options.get("no_cache", False),
+                 model=old.options.get("model"))
     return {"run_id": _create_run(body).id}
 
 
@@ -239,6 +243,26 @@ def delete_run(run_id: str):
 class ConnIn(BaseModel):
     url: str
     token: str
+
+
+class DecisionIn(BaseModel):
+    decision: str
+    comment: str = ""
+
+
+@app.post("/api/runs/{run_id}/findings/{finding_id}/decision")
+def finding_decision(run_id: str, finding_id: str, body: DecisionIn):
+    if body.decision not in {"confirmed", "rejected", "duplicate", "fixed"}:
+        raise HTTPException(400, "Решение должно быть confirmed, rejected, duplicate или fixed")
+    _run(run_id)
+    try:
+        run = runs.decide(run_id, finding_id, body.decision, body.comment)
+    except ValueError:
+        raise HTTPException(404, "Замечание не найдено")
+    except KeyError:
+        raise HTTPException(409, "Отчёт ещё не готов")
+    return {"finding_id": finding_id, "reviewer_decision": run.decisions[finding_id],
+            "decision_counts": run.public()["decision_counts"]}
 
 
 @app.get("/api/gitlab/connections")

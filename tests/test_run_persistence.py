@@ -123,3 +123,22 @@ def test_retry_of_restored_run_without_upload_returns_409(
     assert "исходный файл" in response.json()["detail"].lower()
     assert "загруз" in response.json()["detail"].lower()
     restored_store.close()
+
+
+def test_reviewer_decision_is_persisted_and_added_to_report(tmp_path: Path) -> None:
+    folder = tmp_path / "web"
+    first = RunStore(data_dir=folder)
+    run = _terminal_run()
+    run.result["findings"] = [{"id": "F-01", "quote": "Точная цитата"}]
+    first.runs[run.id] = run
+
+    first.decide(run.id, "F-01", "fixed", "Исправлено в версии 2")
+    second = RunStore(data_dir=folder)
+    restored = second.get(run.id)
+
+    assert restored is not None
+    assert restored.decisions["F-01"]["decision"] == "fixed"
+    assert "## Решения ревьюера" in restored.report_md
+    assert "Исправлено в версии 2" in restored.report_md
+    first.close()
+    second.close()

@@ -17,6 +17,7 @@ def render(result: dict) -> str:
     p = result.get("passport", {})
     reqs = result.get("requirements", [])
     finds = result.get("findings", [])
+    unverified = result.get("unverified_findings", [])
     summ = result.get("summary", {})
     verdict = result.get("verdict", {})
     by_id = {f["id"]: f for f in finds}
@@ -87,6 +88,13 @@ def render(result: dict) -> str:
         for f in crit:
             w(f"- **{f['id']}** {f.get('title', '')} — «{f.get('quote', '')}» ({f.get('location', '')})")
     w("")
+
+    w("### Неподтверждённые выводы\n")
+    w("Эти выводы показываются отдельно и не влияют на вердикт.\n")
+    if not unverified:
+        w("Нет.\n")
+    for finding in unverified:
+        w(_finding(finding))
 
     w("## 6. Итог\n")
     w(f"**{STATUS.get(verdict.get('status'), verdict.get('status', ''))}.** {verdict.get('text', '')}\n")

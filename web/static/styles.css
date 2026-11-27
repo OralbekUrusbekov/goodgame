@@ -238,6 +238,11 @@ details.more[open] > summary::before { content: '−'; }
 .fcard .qq::before { content: '«'; } .fcard .qq::after { content: '»'; }
 .fcard .crit { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .fcard .acts { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.review-actions { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line-2); }
+.review-actions .row { gap: 6px; flex-wrap: wrap; }
+.review-actions .btn, .review-actions .btn-ghost { min-height: 34px; padding: 6px 10px; font-size: 12px; }
+.review-actions input { width: 100%; }
+[role="tabpanel"]:focus { outline: 2px solid var(--green); outline-offset: 4px; }
 .sev-critical { color: var(--crit); } .bg-critical { background: var(--crit); }
 .sev-major { color: var(--major); } .bg-major { background: var(--major); }
 .sev-minor { color: var(--minor); } .bg-minor { background: var(--minor); }

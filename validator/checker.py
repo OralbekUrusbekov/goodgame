@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .llm import LLMProvider
 from .loader import Document
@@ -13,12 +14,14 @@ def check_requirements(
     requirements: list[Requirement],
     provider: LLMProvider,
     batch_size: int = 12,
+    concurrency: int = 2,
     progress_callback: Callable[[int, int], None] | None = None,
 ) -> list[RequirementCheck]:
     result: list[RequirementCheck] = []
     total_batches = max(1, (len(requirements) + batch_size - 1) // batch_size)
-    for batch_index, start in enumerate(range(0, len(requirements), batch_size), 1):
-        batch = requirements[start : start + batch_size]
+    batches = [requirements[start : start + batch_size] for start in range(0, len(requirements), batch_size)]
+
+    def check_batch(batch: list[Requirement]) -> list[RequirementCheck]:
         indexed = _request_checks(document, batch, provider)
         missing = [item for item in batch if item.report_id not in indexed]
         if missing:
@@ -29,15 +32,27 @@ def check_requirements(
                 "Модель не вернула проверку требований после повторной попытки: "
                 + ", ".join(still_missing)
             )
+        checked: list[RequirementCheck] = []
         for requirement in batch:
             raw = indexed[requirement.report_id]
             supplied = raw.get("verdicts", {}) if isinstance(raw.get("verdicts", {}), dict) else {}
             verdicts = {criterion: supplied.get(criterion, "n.a.") for criterion in CRITERIA}
             findings = [Finding.from_dict(item, requirement.report_id) for item in raw.get("findings", []) if isinstance(item, dict)]
             rewrite = str(raw.get("rewrite", "")).strip() if findings else ""
-            result.append(RequirementCheck(requirement.report_id, verdicts, findings, rewrite))
-        if progress_callback:
-            progress_callback(batch_index, total_batches)
+            checked.append(RequirementCheck(requirement.report_id, verdicts, findings, rewrite))
+        return checked
+
+    completed = 0
+    by_id: dict[str, RequirementCheck] = {}
+    with ThreadPoolExecutor(max_workers=max(1, concurrency)) as executor:
+        future_batches = {executor.submit(check_batch, batch): batch for batch in batches}
+        for future in as_completed(future_batches):
+            for check in future.result():
+                by_id[check.requirement_id] = check
+            completed += 1
+            if progress_callback:
+                progress_callback(completed, total_batches)
+    result.extend(by_id[item.report_id] for item in requirements)
     return result
 
 

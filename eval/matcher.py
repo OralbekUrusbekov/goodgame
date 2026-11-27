@@ -109,6 +109,7 @@ def evaluate(report: dict[str, Any], cases: list[dict[str, Any]]) -> dict[str, A
         })
     rows = []
     for case in cases:
+        negative = bool(case.get("negative", False) or case.get("expected") == "no_finding")
         anchors = case.get("anchor_quotes", [])
         categories = case.get("categories") or [
             case.get("category") or case.get("criterion") or case.get("criterion_category", "")
@@ -154,10 +155,13 @@ def evaluate(report: dict[str, Any], cases: list[dict[str, Any]]) -> dict[str, A
             # Показываем самое сильное свидетельство, а не первое попавшееся.
             if lenient_matched is None or score > lenient_score:
                 lenient_matched, lenient_score = finding, score
+        strict_success = matched is None if negative else matched is not None
+        lenient_success = lenient_matched is None if negative else lenient_matched is not None
         rows.append({
             "id": case.get("id"), "description": case.get("description"),
-            "hit": matched is not None, "strict_hit": matched is not None,
-            "lenient_hit": lenient_matched is not None,
+            "negative": negative,
+            "hit": strict_success, "strict_hit": strict_success,
+            "lenient_hit": lenient_success,
             "lenient_match": _lenient_match_label(lenient_matched),
         })
     hits = sum(row["hit"] for row in rows)
@@ -169,6 +173,9 @@ def evaluate(report: dict[str, Any], cases: list[dict[str, Any]]) -> dict[str, A
         "lenient_recall": lenient_hits / len(rows) if rows else 1.0,
         "precision_proxy": verified / len(findings) if findings else 1.0,
         "hits": hits, "strict_hits": hits, "lenient_hits": lenient_hits,
+        "negative_false_positives": sum(
+            row["negative"] and not row["strict_hit"] for row in rows
+        ),
         "total": len(rows), "rows": rows,
     }
 

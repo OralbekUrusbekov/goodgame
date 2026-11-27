@@ -6,7 +6,8 @@ import re
 from typing import Any
 
 from .coverage import (
-    COVERAGE_SCHEMA, SkippedUnit, coverage_prompt, extract_units, uncovered_units, unit_is_covered
+    COVERAGE_SCHEMA, SkippedUnit, coverage_prompt, extract_units, is_process_metadata,
+    uncovered_units, unit_is_covered,
 )
 from .llm import LLMProvider
 from .loader import Document
@@ -64,6 +65,8 @@ def _requirements_from_raw(raw_items: list[dict[str, Any]]) -> list[Requirement]
     seen: set[str] = set()
     for raw in raw_items:
         requirement = Requirement.from_dict(raw, len(result) + 1)
+        if is_process_metadata(requirement.quote, requirement.section):
+            continue
         key = fuzzy_normalize(requirement.quote)
         if key and key not in seen:
             seen.add(key)
@@ -128,7 +131,9 @@ def segment(
     warnings: list[str] = []
     for requirement in requirements:
         requirement.quote_verified = bool(requirement.quote and quote_exists(requirement.quote, document.text))
-        requirement.line_number = document.line_for(requirement.quote)
+        requirement.line_number = document.line_for(
+            requirement.quote, context=requirement.quote, section=requirement.section
+        )
         if not requirement.quote_verified:
             warnings.append(f"{requirement.report_id}: цитата сегмента не найдена в источнике")
         if not requirement.section or requirement.section == "Раздел не определён":

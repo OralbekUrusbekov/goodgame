@@ -6,12 +6,62 @@ from .models import Finding, Requirement, SetCheck
 from .placeholders import find_placeholder_findings
 from .prompts import SET_SCHEMA, completeness_prompt, consistency_prompt
 from .verifier import dedupe_findings
+from .verifier import normalize
+import re
 
 
 SET_CRITERIA = (
     "complete", "consistent", "feasible", "comprehensible", "able_to_be_validated",
     "ranked_importance_stability", "modifiable", "traceable",
 )
+
+
+def _terms(requirement: Requirement) -> set[str]:
+    value = normalize(f"{requirement.source_id} {requirement.section} {requirement.short_text} {requirement.quote}")
+    stop = {"требование", "система", "должен", "должна", "должно", "если", "при", "для", "или", "and", "the"}
+    return {word for word in re.findall(r"[\w/-]+", value) if len(word) >= 3 and word not in stop}
+
+
+def build_traceability_matrix(requirements: list[Requirement]) -> list[dict]:
+    """Build stable intradocument goal→requirement→acceptance→API links."""
+    acceptance = [item for item in requirements if re.search(
+        r"критери\w*\s+при[её]м|acceptance|given\b|when\b|then\b", normalize(f"{item.section} {item.quote}")
+    )]
+    api = [item for item in requirements if re.search(
+        r"\bapi\b|\bhttp\b|\brest\b|endpoint|request|response|/[-\w/{}/]+", normalize(f"{item.section} {item.quote}")
+    )]
+    goals = [item for item in requirements if re.search(r"\bцель\w*\b|\bgoal\w*\b", normalize(item.section))]
+    excluded = {item.report_id for item in [*goals, *acceptance, *api]}
+    product = [item for item in requirements if item.report_id not in excluded]
+    if not product:
+        product = list(requirements)
+
+    def linked(source: Requirement, candidates: list[Requirement]) -> list[str]:
+        source_terms = _terms(source)
+        result = []
+        for candidate in candidates:
+            shared_id = source.source_id != "—" and source.source_id == candidate.source_id
+            overlap = source_terms & _terms(candidate)
+            if shared_id or len(overlap) >= 2 or (overlap and len(source_terms) <= 3):
+                result.append(candidate.report_id)
+        return result
+
+    rows = []
+    for requirement in product:
+        acceptance_ids = linked(requirement, acceptance)
+        api_ids = linked(requirement, api)
+        linked_goals = linked(requirement, goals)
+        goal = ", ".join(linked_goals) or requirement.section
+        status = "covered" if acceptance_ids and api_ids else "partial" if acceptance_ids or api_ids else "missing"
+        rows.append({
+            "goal": goal,
+            "goal_quote": next((item.quote for item in goals if item.report_id in linked_goals), ""),
+            "requirement_ids": [requirement.report_id],
+            "acceptance_ids": acceptance_ids,
+            "api_ids": api_ids,
+            "status": status,
+        })
+    return rows
 
 
 def check_set(
@@ -48,8 +98,8 @@ def check_set(
         str(response.get("traceability", "")).strip() for response in responses
         if str(response.get("traceability", "")).strip()
     )
-    matrix = []
-    seen_rows = set()
+    matrix = build_traceability_matrix(requirements)
+    seen_rows = {(str(row.get("goal", "")), tuple(row.get("requirement_ids", []))) for row in matrix}
     for response in responses:
         for row in response.get("traceability_matrix", []):
             if not isinstance(row, dict):

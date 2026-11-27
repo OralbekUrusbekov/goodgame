@@ -55,7 +55,10 @@ def _finding_block(finding: Finding) -> list[str]:
              f"  - Цитата: «{finding.quote}»", f"  - Место: {finding.location}"]
     if finding.related_quotes:
         lines.append("  - Связанные цитаты: " + "; ".join(f"«{q}»" for q in finding.related_quotes))
+    if len(finding.criteria) > 1:
+        lines.append("  - Все критерии: " + ", ".join(finding.criteria))
     lines.append(f"  - Исправление: {finding.fix}")
+    lines.append(f"  - Тип исправления: {finding.fix_kind}")
     lines.append(f"  - Проверка цитаты: {'подтверждена' if finding.quote_verified else 'цитата не подтверждена'}")
     if finding.confidence:
         lines.append(f"  - Уверенность: {finding.confidence}")
@@ -71,9 +74,11 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
                   test_cases: list[dict] | None = None, diff_result: dict | None = None) -> str:
     timestamp = run_at or datetime.now().astimezone()
     metadata = metadata or {}
-    all_findings = dedupe_findings(
+    collected_findings = dedupe_findings(
         [finding for check in checks for finding in check.findings] + set_check.findings
     )
+    all_findings = [item for item in collected_findings if item.quote_verified and not item.unverified]
+    unverified_findings = [item for item in collected_findings if item.unverified or not item.quote_verified]
     severity = Counter(item.severity for item in all_findings)
     criteria = Counter(item.criterion for item in all_findings)
     coverage_text = f"{coverage['percent']}%" if coverage and "percent" in coverage else "не рассчитано"
@@ -83,6 +88,9 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
              f"- Версия агента: {metadata.get('agent_version', agent_version())}",
              f"- Git tag: {metadata.get('git_tag', git_tag())}",
              f"- Покрытие исходных фрагментов: {coverage_text}",
+             (f"- Знаменатель покрытия: {coverage['covered_units']} из {coverage['total_units']} смысловых "
+              "фрагментов документа; исключены заголовки, процессные метаданные и пустые шаблоны."
+              if coverage else "- Знаменатель покрытия: не рассчитан."),
              f"- LLM-вызовов: {metadata.get('llm_calls', '—')}; cache hits: {metadata.get('cache_hits', '—')}",
              f"- Длительность: {metadata.get('duration_seconds', '—')} с",
              f"- SHA-256 входного файла: `{metadata.get('input_sha256', '—')}`",
@@ -100,8 +108,9 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
         lines.extend([f"### {check.requirement_id} — {req.short_text}", "", "| Критерий | Вердикт |", "|---|---|"])
         lines.extend(f"| {CRITERION_RU.get(key, key)} | {VERDICT_RU.get(value, value)} |" for key, value in check.verdicts.items())
         lines.extend(["", "**Нарушения**", ""])
-        if check.findings:
-            for finding in check.findings:
+        verified = [finding for finding in check.findings if finding.quote_verified and not finding.unverified]
+        if verified:
+            for finding in verified:
                 lines.extend(_finding_block(finding))
         else:
             lines.append("Нарушений не обнаружено.")
@@ -114,8 +123,9 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
     if set_check.missing_sections:
         lines.append("Отмеченные отсутствующие разделы: " + ", ".join(set_check.missing_sections) + ".")
         lines.append("")
-    if set_check.findings:
-        for finding in set_check.findings:
+    verified_set = [finding for finding in set_check.findings if finding.quote_verified and not finding.unverified]
+    if verified_set:
+        for finding in verified_set:
             lines.extend(_finding_block(finding))
     else:
         lines.append("Нарушений на уровне набора не обнаружено.")
@@ -136,6 +146,13 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
         else:
             lines.append("Не выявлены.")
         lines.append("")
+    lines.extend(["### Неподтверждённые выводы (не влияют на итог)", ""])
+    if unverified_findings:
+        for finding in unverified_findings:
+            lines.extend(_finding_block(finding))
+    else:
+        lines.append("Нет.")
+    lines.append("")
     decision, justification = summary["decision"], summary["justification"]
     lines.extend(["## 6. Итог", "", f"**Можно ли начинать разработку и тестирование: {decision}.** {justification}", "", "### Что исправить в первую очередь", ""])
     if summary["top_fixes"]:
@@ -189,11 +206,17 @@ def render_report(document: Document, requirements: list[Requirement], checks: l
 def report_summary(
     requirements: list[Requirement], checks: list[RequirementCheck], set_check: SetCheck
 ) -> dict:
-    findings = dedupe_findings([finding for check in checks for finding in check.findings] + set_check.findings)
+    findings = [
+        item for item in dedupe_findings(
+            [finding for check in checks for finding in check.findings] + set_check.findings
+        ) if item.quote_verified and not item.unverified
+    ]
     severity = Counter(item.severity for item in findings)
     criteria = Counter(item.criterion for item in findings)
     groups = {"unverifiable": [], "contradictory": [], "incomplete": [], "other": []}
     for item in findings:
+        if item.severity != "critical":
+            continue
         key = (
             "unverifiable" if item.criterion == "verifiable" else
             "contradictory" if item.criterion == "consistent" else
@@ -245,12 +268,21 @@ def build_payload(
     checks: list[RequirementCheck],
     set_check: SetCheck,
 ) -> dict:
-    full_metadata = {**metadata, "agent_version": metadata.get("agent_version") or agent_version()}
+    all_findings = dedupe_findings(
+        [finding for check in checks for finding in check.findings] + set_check.findings
+    )
+    unverified_count = sum(item.unverified or not item.quote_verified for item in all_findings)
+    full_metadata = {
+        **metadata,
+        "agent_version": metadata.get("agent_version") or agent_version(),
+        "unverified_findings": unverified_count,
+    }
     return {
         "metadata": full_metadata,
         "requirements": [asdict(item) for item in requirements],
         "requirement_checks": [asdict(item) for item in checks],
         "set_check": asdict(set_check),
+        "traceability_matrix": set_check.traceability_matrix,
         "summary": report_summary(requirements, checks, set_check),
     }
 

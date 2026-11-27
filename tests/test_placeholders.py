@@ -30,7 +30,7 @@ def test_placeholder_scan_groups_exact_quotes_by_section_and_severity(tmp_path: 
     assert [finding.location.split(", строка", 1)[0] for finding in findings] == [
         "Версия документа", "Тестирование", "Согласование", "Дополнительные сведения"
     ]
-    assert [finding.severity for finding in findings] == ["critical", "critical", "critical", "major"]
+    assert [finding.severity for finding in findings] == ["major", "critical", "major", "major"]
     assert all(finding.criterion == "complete" for finding in findings)
     assert all(finding.quote in document.text for finding in findings)
     assert all(
@@ -79,7 +79,7 @@ def test_set_checker_merges_deterministic_and_llm_duplicate(tmp_path: Path) -> N
     assert result.verdicts["complete"] == "violation"
 
 
-def test_empty_mandatory_section_is_critical(tmp_path: Path) -> None:
+def test_empty_approval_section_is_major_process_metadata(tmp_path: Path) -> None:
     source = tmp_path / "empty-section.md"
     source.write_text(
         "# Документ\n\n## Согласование\n\n## Описание\nТекст требования.\n",
@@ -89,6 +89,6 @@ def test_empty_mandatory_section_is_critical(tmp_path: Path) -> None:
     findings = find_placeholder_findings(load_document(source))
 
     assert len(findings) == 1
-    assert findings[0].severity == "critical"
+    assert findings[0].severity == "major"
     assert findings[0].quote == "## Согласование"
     assert findings[0].location == "Согласование, строка 3"

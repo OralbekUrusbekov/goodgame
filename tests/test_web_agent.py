@@ -155,3 +155,27 @@ def test_upload_errors_for_empty_unsupported_and_oversized_files(
     assert empty.status_code == 422 and empty.json()["code"] == "empty"
     assert unsupported.status_code == 415 and unsupported.json()["code"] == "format"
     assert oversized.status_code == 413 and oversized.json()["code"] == "size"
+
+
+def test_application_upload_limit_is_inclusive(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(web_app_module, "MAX_BYTES", 20)
+    at_limit = CLIENT.post(
+        "/api/documents", files={"file": ("limit.txt", b"valid requirement ok", "text/plain")}
+    )
+    over_limit = CLIENT.post(
+        "/api/documents", files={"file": ("large.txt", b"valid requirement ok!", "text/plain")}
+    )
+
+    assert at_limit.status_code == 200
+    assert over_limit.status_code == 413
+    assert over_limit.json()["message"] == "Файл больше 20 МБ"
+
+
+def test_model_allowlist_is_exposed_and_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LLM_ALLOWED_MODELS", "model-a,model-b")
+    meta = CLIENT.get("/api/meta")
+    response = CLIENT.post("/api/runs", json={"upload_id": "missing", "model": "model-x"})
+
+    assert meta.json()["allowed_models"] == ["model-a", "model-b"]
+    assert response.status_code == 400
+    assert "не разрешена" in response.json()["detail"]

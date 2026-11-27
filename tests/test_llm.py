@@ -1,6 +1,7 @@
 import pytest
 
-from validator.llm import _retry, extract_json, parse_retry_delay
+from validator.cache import LLMCache
+from validator.llm import LLMProvider, ProviderRouter, _retry, extract_json, parse_retry_delay
 
 
 def test_parse_retry_delay_from_retry_info() -> None:
@@ -63,3 +64,25 @@ def test_json_repair_drops_last_truncated_array_item() -> None:
     raw = '{"requirements":[{"quote":"готово"},{"quote":"оборвано'
 
     assert extract_json(raw) == {"requirements": [{"quote": "готово"}]}
+
+
+def test_all_fallback_quotas_report_models_and_wait(tmp_path) -> None:
+    class Exhausted(LLMProvider):
+        name = "gemini"
+
+        def __init__(self, model: str, delay: int):
+            self.model = model
+            self.delay = delay
+
+        def generate_json(self, system, user, schema=None, operation="llm"):
+            error = RuntimeError(f'HTTP 429 {{"retryDelay": "{self.delay}s"}}')
+            error.status_code = 429
+            raise error
+
+    router = ProviderRouter(
+        [Exhausted("first", 20), Exhausted("second", 45)],
+        LLMCache(tmp_path / "off", enabled=False),
+    )
+
+    with pytest.raises(RuntimeError, match=r"Квота исчерпана у всех моделей.*first.*second.*45 с"):
+        router.generate_json("system", "user")

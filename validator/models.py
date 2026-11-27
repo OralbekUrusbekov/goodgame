@@ -44,14 +44,19 @@ class Finding:
     quote_verified: bool = True
     confidence: str | None = None
     expert_confirmation: bool = False
+    fix_kind: str = "edit"
+    criteria: list[str] = field(default_factory=list)
+    unverified: bool = False
 
     @classmethod
     def from_dict(cls, data: dict[str, Any], default_id: str | None = None) -> "Finding":
         ids = data.get("requirement_ids") or ([default_id] if default_id else [])
         quote = str(data.get("quote") or "").strip()
         related = [str(q).strip() for q in data.get("related_quotes", []) if str(q).strip()]
+        criterion = str(data.get("criterion") or "complete")
+        fix_kind = str(data.get("fix_kind") or "edit").lower()
         return cls(
-            criterion=str(data.get("criterion") or "complete"),
+            criterion=criterion,
             severity=str(data.get("severity") or "major").lower(),
             explanation=str(data.get("explanation") or "Недостаток требует уточнения."),
             fix=str(data.get("fix") or "Уточнить формулировку требования."),
@@ -61,6 +66,11 @@ class Finding:
             related_quotes=related,
             confidence=str(data.get("confidence")) if data.get("confidence") else None,
             expert_confirmation=bool(data.get("expert_confirmation", False)),
+            fix_kind=fix_kind if fix_kind in {"edit", "decision"} else "edit",
+            criteria=list(dict.fromkeys(
+                str(item) for item in (data.get("criteria") or [criterion]) if item
+            )),
+            unverified=bool(data.get("unverified", False)),
         )
 
 
