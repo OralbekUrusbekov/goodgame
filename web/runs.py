@@ -217,6 +217,31 @@ class RunStore:
             cancel_outcome=data.get("cancel_outcome"),
         )
 
+    @staticmethod
+    def _migrate_partial(run: Run) -> bool:
+        """Снимки старых версий: частичный результат мог быть сохранён как done с ready=true."""
+        result = run.result if isinstance(run.result, dict) else None
+        if not result or not result.get("partial"):
+            return False
+        verdict = result.setdefault("verdict", {})
+        changed = run.status == "done" or verdict.get("ready") or verdict.get("status") != "incomplete"
+        if not changed:
+            return False
+        run.status = "partial" if run.status == "done" else run.status
+        if run.stage == "done":
+            run.stage = "partial"
+        verdict.update({"status": "incomplete", "ready": False, "fix_first": verdict.get("fix_first") or [],
+                        "text": "Проверка не завершена. Итоговый вывод не сформирован."})
+        for req in result.get("requirements") or []:
+            if isinstance(req, dict) and req.get("status") in (None, "", "pass", "checked"):
+                req["status"] = "not_checked"
+        banner = ("> **Проверка не завершена.** Отчёт частичный: вывод о готовности документа "
+                  "не сформирован, непроверенные требования помечены «Не проверено».\n\n")
+        if run.report_md and not run.report_md.startswith(banner):
+            run.report_md = banner + run.report_md.replace(
+                "Документ готов к разработке", "Проверка не завершена")
+        return True
+
     def _load_runs(self) -> None:
         interrupted: list[Run] = []
         for path in sorted(self.data_dir.glob("*.json")):
@@ -238,6 +263,8 @@ class RunStore:
                     "message": "прогон прерван перезапуском сервера",
                     "hint": "Загрузите исходный документ заново и повторите проверку.",
                 }
+                interrupted.append(run)
+            elif self._migrate_partial(run):
                 interrupted.append(run)
             self.runs[run.id] = run
         for run in interrupted:

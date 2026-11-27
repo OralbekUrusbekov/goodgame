@@ -162,3 +162,29 @@ def test_reviewer_decision_is_persisted_and_added_to_report(tmp_path: Path) -> N
     assert "Исправлено в версии 2" in restored.report_md
     first.close()
     second.close()
+
+
+def test_legacy_partial_snapshot_is_migrated_to_incomplete(tmp_path: Path) -> None:
+    run = _terminal_run("legacy-partial")
+    run.result = {
+        "partial": True,
+        "summary": {"requirements_total": 2, "by_severity": {}},
+        "verdict": {"status": "ready", "ready": True, "text": "Документ готов к разработке."},
+        "requirements": [{"id": "R-01"}, {"id": "R-02", "status": "pass"}],
+    }
+    run.report_md = "# Отчёт\n\nДокумент готов к разработке.\n"
+    _write_snapshot(tmp_path, run)
+
+    store = RunStore(tmp_path)
+    try:
+        loaded = store.get("legacy-partial")
+        assert loaded is not None
+        assert loaded.status == "partial"
+        assert loaded.result["verdict"]["ready"] is False
+        assert loaded.result["verdict"]["status"] == "incomplete"
+        assert {r["status"] for r in loaded.result["requirements"]} == {"not_checked"}
+        assert "Документ готов к разработке" not in loaded.report_md
+        saved = json.loads((tmp_path / "legacy-partial.json").read_text(encoding="utf-8"))
+        assert saved["status"] == "partial"
+    finally:
+        store.close()

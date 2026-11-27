@@ -112,6 +112,7 @@ def _finding(item: dict, scope: str, origin: str | None, code: str) -> dict:
         "fix_kind": item.get("fix_kind", "edit"),
         "quote_verified": bool(item.get("quote_verified", True)),
         "confidence": item.get("confidence"),
+        "merged_ids": list(item.get("merged_ids") or []),
         "code_ref": None,
     }
 

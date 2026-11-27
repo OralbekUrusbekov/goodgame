@@ -47,6 +47,7 @@ class Finding:
     fix_kind: str = "edit"
     criteria: list[str] = field(default_factory=list)
     unverified: bool = False
+    merged_ids: list[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any], default_id: str | None = None) -> "Finding":
@@ -71,6 +72,7 @@ class Finding:
                 str(item) for item in (data.get("criteria") or [criterion]) if item
             )),
             unverified=bool(data.get("unverified", False)),
+            merged_ids=[str(item) for item in data.get("merged_ids", []) if item],
         )
 
 

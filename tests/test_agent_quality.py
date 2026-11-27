@@ -89,6 +89,71 @@ def test_cluster_merges_same_defect_but_not_different_meaning() -> None:
     assert clustered[1].explanation.startswith("Не определены права")
 
 
+def test_cluster_merges_mirrored_contradiction_through_pair_evidence() -> None:
+    first_side = _finding(
+        criterion="correct", severity="major", requirement_ids=["R-12"],
+        quote="Пример значения: AA.",
+        explanation="Пример не соответствует ограничению длины.", merged_ids=["F-a"],
+    )
+    pair = _finding(
+        criterion="consistent", severity="critical", requirement_ids=["R-02", "R-12"],
+        quote="Значение содержит от 3 до 9 символов.", related_quotes=["Пример значения: AA."],
+        explanation="Ограничение требует минимум три символа, но пример содержит два.", merged_ids=["F-b"],
+    )
+    second_side = _finding(
+        criterion="correct", severity="major", requirement_ids=["R-02"],
+        quote="Значение содержит от 3 до 9 символов.",
+        explanation="Ограничение длины нарушено приведённым примером.", merged_ids=["F-c"],
+    )
+
+    clustered = cluster_findings([first_side, second_side, pair])
+
+    assert len(clustered) == 1
+    merged = clustered[0]
+    assert merged.severity == "critical"
+    assert merged.criteria == ["consistent", "correct"]
+    assert set(merged.requirement_ids) == {"R-02", "R-12"}
+    assert {merged.quote, *merged.related_quotes} == {
+        "Значение содержит от 3 до 9 символов.", "Пример значения: AA.",
+    }
+    assert merged.explanation == pair.explanation
+    assert merged.merged_ids == ["F-a", "F-c", "F-b"]
+
+
+def test_cluster_keeps_distinct_counterparts_that_share_one_requirement() -> None:
+    first = _finding(
+        criterion="consistent", requirement_ids=["R-01", "R-02"],
+        quote="Общее правило.", related_quotes=["Первый несовместимый результат."],
+        explanation="Общее правило расходится с первым результатом.",
+    )
+    second = _finding(
+        criterion="correct", requirement_ids=["R-01", "R-03"],
+        quote="Общее правило.", related_quotes=["Второй несовместимый результат."],
+        explanation="Общее правило расходится со вторым результатом.",
+    )
+
+    clustered = cluster_findings([first, second])
+
+    assert len(clustered) == 2
+    assert [set(item.requirement_ids) for item in clustered] == [{"R-01", "R-02"}, {"R-01", "R-03"}]
+
+
+def test_cluster_merges_overlapping_multi_requirement_sets() -> None:
+    first = _finding(
+        criterion="consistent", requirement_ids=["R-01", "R-02"],
+        quote="Первое свидетельство.", explanation="Первая сторона расхождения.",
+    )
+    second = _finding(
+        criterion="correct", requirement_ids=["R-02", "R-01", "R-03"],
+        quote="Второе свидетельство.", explanation="Полное объяснение той же несовместимости.",
+    )
+
+    clustered = cluster_findings([first, second])
+
+    assert len(clustered) == 1
+    assert set(clustered[0].requirement_ids) == {"R-01", "R-02", "R-03"}
+
+
 def test_prompts_require_safe_fixes_severity_and_acceptance_preconditions(tmp_path: Path) -> None:
     source = tmp_path / "r.md"
     source.write_text("# Правило\nСистема возвращает результат.\n", encoding="utf-8")

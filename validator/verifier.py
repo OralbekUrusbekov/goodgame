@@ -8,6 +8,7 @@ from .models import Finding
 
 
 SEVERITY_RANK = {"critical": 3, "major": 2, "minor": 1}
+_CONTRADICTION_CRITERIA = {"consistent", "correct", "unambiguous"}
 _STOP_WORDS = {
     "и", "или", "но", "а", "в", "во", "на", "по", "для", "из", "к", "ко", "с", "со",
     "не", "нет", "что", "это", "как", "при", "если", "то", "же", "быть", "есть", "у",
@@ -164,18 +165,63 @@ def _meaningful_words(value: str) -> set[str]:
     }
 
 
-def _shared_verified_quote(left: Finding, right: Finding) -> bool:
+def _verified_quote_overlap(left: Finding, right: Finding) -> int:
+    """Count distinct pieces of verified evidence shared by two findings."""
     if not left.quote_verified or not right.quote_verified:
-        return False
-    return bool(
-        {normalize(item) for item in [left.quote, *left.related_quotes] if item}
-        & {normalize(item) for item in [right.quote, *right.related_quotes] if item}
+        return 0
+    left_quotes = list(dict.fromkeys(normalize(item) for item in [left.quote, *left.related_quotes] if item))
+    right_quotes = list(dict.fromkeys(normalize(item) for item in [right.quote, *right.related_quotes] if item))
+    matched_right: set[int] = set()
+    overlap = 0
+    for first in left_quotes:
+        for index, second in enumerate(right_quotes):
+            if index in matched_right:
+                continue
+            if first == second or quote_exists(first, second, threshold=0.9) or quote_exists(second, first, threshold=0.9):
+                overlap += 1
+                matched_right.add(index)
+                break
+    return overlap
+
+
+def _criterion_group(finding: Finding) -> set[str]:
+    return {finding.criterion, *finding.criteria}
+
+
+def _overlapping_requirement_set(left: Finding, right: Finding) -> bool:
+    return len(set(left.requirement_ids) & set(right.requirement_ids)) >= 2
+
+
+def _different_counterpart_evidence(left: Finding, right: Finding, overlap: int) -> bool:
+    """Protect separate defects that only reuse one side of a contradiction."""
+    left_quotes = {normalize(item) for item in [left.quote, *left.related_quotes] if item}
+    right_quotes = {normalize(item) for item in [right.quote, *right.related_quotes] if item}
+    shared_ids = set(left.requirement_ids) & set(right.requirement_ids)
+    return (
+        not _overlapping_requirement_set(left, right)
+        and len(shared_ids) <= 1
+        and len(left_quotes) >= 2
+        and len(right_quotes) >= 2
+        and overlap < 2
     )
 
 
 def findings_are_clusterable(left: Finding, right: Finding, threshold: float = 0.45) -> bool:
     """Whether findings describe the same defect supported by the same evidence."""
-    if not _shared_verified_quote(left, right):
+    if not left.quote_verified or not right.quote_verified:
+        return False
+    overlap = _verified_quote_overlap(left, right)
+    contradiction = bool(
+        _criterion_group(left) & _CONTRADICTION_CRITERIA
+        and _criterion_group(right) & _CONTRADICTION_CRITERIA
+    )
+    if contradiction and _overlapping_requirement_set(left, right):
+        return True
+    if _different_counterpart_evidence(left, right, overlap):
+        return False
+    if contradiction and overlap:
+        return True
+    if not overlap:
         return False
     left_words, right_words = _meaningful_words(left.explanation), _meaningful_words(right.explanation)
     if not left_words or not right_words:
@@ -184,35 +230,65 @@ def findings_are_clusterable(left: Finding, right: Finding, threshold: float = 0
 
 
 def cluster_findings(findings: list[Finding], threshold: float = 0.45) -> list[Finding]:
-    """Deterministically merge same-evidence, same-meaning verified findings."""
+    """Deterministically merge connected findings that describe one verified defect."""
+    if not findings:
+        return []
+    parents = list(range(len(findings)))
+
+    def root(index: int) -> int:
+        while parents[index] != index:
+            parents[index] = parents[parents[index]]
+            index = parents[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        left_root, right_root = root(left), root(right)
+        if left_root != right_root:
+            parents[max(left_root, right_root)] = min(left_root, right_root)
+
+    for index, finding in enumerate(findings):
+        finding.criteria = list(dict.fromkeys([finding.criterion, *finding.criteria]))
+        if not finding.merged_ids:
+            finding.merged_ids = [f"input-{index + 1:03d}"]
+        for other_index in range(index):
+            if findings_are_clusterable(findings[other_index], finding, threshold):
+                union(other_index, index)
+
+    components: dict[int, list[tuple[int, Finding]]] = {}
+    for index, finding in enumerate(findings):
+        components.setdefault(root(index), []).append((index, finding))
+
     result: list[Finding] = []
-    for finding in findings:
-        match = next((item for item in result if findings_are_clusterable(item, finding, threshold)), None)
-        if match is None:
-            finding.criteria = list(dict.fromkeys([finding.criterion, *finding.criteria]))
-            result.append(finding)
-            continue
-        candidates = [match, finding]
-        primary = sorted(
+    for _, indexed_candidates in sorted(components.items(), key=lambda item: min(index for index, _ in item[1])):
+        candidates = [finding for _, finding in indexed_candidates]
+        primary = min(
+            indexed_candidates,
+            key=lambda item: (-SEVERITY_RANK.get(item[1].severity, 0), item[1].criterion, item[0]),
+        )[1]
+        best_explanation = max(
             candidates,
-            key=lambda item: (-SEVERITY_RANK.get(item.severity, 0), item.criterion, item.explanation),
-        )[0]
-        if primary is finding:
-            index = result.index(match)
-            result[index] = finding
-            match = finding
-        match.severity = max(candidates, key=lambda item: SEVERITY_RANK.get(item.severity, 0)).severity
-        match.criteria = sorted(set(
+            key=lambda item: (
+                len(item.requirement_ids), len([item.quote, *item.related_quotes]),
+                len(_meaningful_words(item.explanation)), len(item.explanation),
+            ),
+        ).explanation
+        primary.severity = max(candidates, key=lambda item: SEVERITY_RANK.get(item.severity, 0)).severity
+        primary.explanation = best_explanation
+        primary.criteria = sorted(set(
             criterion for item in candidates for criterion in [item.criterion, *item.criteria]
         ))
-        match.requirement_ids = list(dict.fromkeys(
+        primary.requirement_ids = list(dict.fromkeys(
             requirement_id for item in candidates for requirement_id in item.requirement_ids
         ))
-        match.related_quotes = list(dict.fromkeys(
+        primary.related_quotes = list(dict.fromkeys(
             quote for item in candidates for quote in [item.quote, *item.related_quotes]
-            if quote and quote != match.quote
+            if quote and quote != primary.quote
         ))
-        match.fix_kind = "decision" if any(item.fix_kind == "decision" for item in candidates) else "edit"
+        primary.merged_ids = list(dict.fromkeys(
+            merged_id for item in candidates for merged_id in item.merged_ids
+        ))
+        primary.fix_kind = "decision" if any(item.fix_kind == "decision" for item in candidates) else "edit"
+        result.append(primary)
     return result
 
 
